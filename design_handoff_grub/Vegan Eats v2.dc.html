@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800;900&family=Josefin+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="design_doc_mode" content="canvas">
+  <style>
+    body { margin: 0; background: #FDF2EC; font-family: 'Josefin Sans', system-ui, sans-serif; }
+    ::-webkit-scrollbar { width: 0; height: 0; }
+    a { color: #000; }
+    a:hover { color: #4E8C2B; }
+  </style>
+</helmet>
+
+<div style="display:flex; flex-direction:column; align-items:center; gap:28px; padding:48px 24px 96px; min-width:1000px;">
+
+  <div style="display:flex; gap:6px; background:#fff; padding:6px; border-radius:100px; border:2px solid #000;">
+    <button onClick="{{ setView_proto }}" style="{{ tabStyleProto }}">Prototype</button>
+    <button onClick="{{ setView_flow }}" style="{{ tabStyleFlow }}">Flow map</button>
+  </div>
+
+  <sc-if value="{{ isFlow }}" hint-placeholder-val="{{ false }}">
+    <div style="width:100%; max-width:1400px;">
+      <h2 style="font-family:'Big Shoulders Display',sans-serif; font-size:40px; font-weight:800; text-transform:uppercase; color:#000; margin:0 0 24px; text-align:center; letter-spacing:-0.01em;">Finding a place to eat</h2>
+      <div style="display:flex; align-items:stretch; flex-wrap:wrap; justify-content:center;">
+        <sc-for list="{{ flowSteps }}" as="step" hint-placeholder-count="6">
+          <div style="display:flex; align-items:center;">
+            <div style="width:210px; padding:18px; background:{{ step.color }}; border:2px solid #000; border-radius:18px; box-shadow:4px 4px 0 #000;">
+              <div style="font-family:'Big Shoulders Display',sans-serif; font-size:14px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:4px;">Step {{ step.n }}</div>
+              <div style="font-family:'Big Shoulders Display',sans-serif; font-size:24px; font-weight:800; text-transform:uppercase; line-height:1.08; margin-bottom:8px;">{{ step.title }}</div>
+              <div style="font-size:13px; color:#000; opacity:0.7; line-height:1.35;">{{ step.desc }}</div>
+            </div>
+            <sc-if value="{{ step.hasArrow }}" hint-placeholder-val="{{ true }}">
+              <div style="width:30px; text-align:center; font-size:22px; font-weight:700;">→</div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isProto }}" hint-placeholder-val="{{ true }}">
+    <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" title="{{ deviceTitle }}" hint-size="390,844">
+      <div style="height:100%; display:flex; flex-direction:column; background:#FDF2EC; font-family:'Josefin Sans',system-ui,sans-serif; overflow:hidden;">
+
+        <sc-if value="{{ screenIs_demo }}" hint-placeholder-val="{{ true }}">
+          <div style="flex:1; display:flex; flex-direction:column; padding:22px 24px 28px; background:{{ onboardBg }};">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px;">
+              <div style="display:flex; gap:6px;">
+                <sc-for list="{{ onboardDots }}" as="dot" hint-placeholder-count="3">
+                  <div style="{{ dot.style }}"></div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ onboardCanSkip }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ goHome }}" style="background:none; border:none; padding:0; font-family:inherit; font-size:12.5px; font-weight:700; text-decoration:underline; cursor:pointer;">Skip</button>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{ onboardIs1 }}" hint-placeholder-val="{{ true }}">
+              <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+                <div style="font-family:'Big Shoulders Display',sans-serif; font-size:110px; font-weight:900; line-height:1.0; text-transform:uppercase; margin-bottom:14px;">Grub</div>
+                <div style="font-size:16px; opacity:0.78; line-height:1.4; max-width:290px; margin-bottom:24px;">Find the closest place you can actually order from, whether you're fully vegan or just skipping the meat.</div>
+                <div style="background:#fff; border:2px solid #000; border-radius:20px; padding:16px; box-shadow:5px 5px 0 #000;">
+                  <div style="font-family:'Big Shoulders Display',sans-serif; font-size:26px; font-weight:800; text-transform:uppercase; line-height:1.08;">Where are you?</div>
+                  <div style="font-size:13.5px; opacity:0.75; margin-top:5px; line-height:1.4;">We use your location to sort spots by how far you'd have to walk or drive. Nothing is shared.</div>
+                </div>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <button onClick="{{ onboardNext }}" style="width:100%; padding:17px; border-radius:100px; border:2px solid #000; background:#000; color:#A2DB69; font-family:'Big Shoulders Display',sans-serif; font-size:22px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; cursor:pointer;">Use my location</button>
+                <button onClick="{{ onboardNext }}" style="width:100%; padding:15px; border-radius:100px; border:2px solid #000; background:transparent; font-family:'Big Shoulders Display',sans-serif; font-size:19px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; cursor:pointer;">Enter a city instead</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ onboardIs2 }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+                <div style="font-family:'Big Shoulders Display',sans-serif; font-size:52px; font-weight:900; line-height:1.0; text-transform:uppercase; margin-bottom:8px;">How do<br/>you eat?</div>
+                <div style="font-size:15px; opacity:0.78; line-height:1.4; margin-bottom:20px;">Pick anything that applies. This becomes your default filter — change it any time.</div>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                  <sc-for list="{{ onboardDietCards }}" as="d" hint-placeholder-count="3">
+                    <button onClick="{{ d.onClick }}" style="{{ d.style }}">
+                      <div style="font-family:'Big Shoulders Display',sans-serif; font-size:26px; font-weight:800; text-transform:uppercase; line-height:1.08;">{{ d.label }}</div>
+                      <div style="font-size:13px; opacity:0.75; margin-top:4px; line-height:1.35;">{{ d.detail }}</div>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+              <button onClick="{{ onboardNext }}" style="width:100%; padding:17px; border-radius:100px; border:2px solid #000; background:#000; color:#F98875; font-family:'Big Shoulders Display',sans-serif; font-size:22px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; cursor:pointer;">{{ onboardStep2Cta }}</button>
+            </sc-if>
+
+            <sc-if value="{{ onboardIs3 }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1; display:flex; flex-direction:column; justify-content:center; min-height:0;">
+                <div style="font-family:'Big Shoulders Display',sans-serif; font-size:52px; font-weight:900; line-height:1.0; text-transform:uppercase; margin-bottom:6px;">{{ resultsCount }} spots<br/>are ready</div>
+                <div style="font-size:15px; opacity:0.78; line-height:1.4; margin-bottom:18px;">{{ onboardTeaserLine }}</div>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                  <sc-for list="{{ onboardTeaser }}" as="r" hint-placeholder-count="3">
+                    <div style="{{ r.rowStyle }}">
+                      <div style="width:48px; height:48px; flex:0 0 auto; border:2px solid #000; border-radius:12px; background:repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 6px, #fff 6px, #fff 12px);"></div>
+                      <div style="flex:1; min-width:0;">
+                        <div style="font-family:'Big Shoulders Display',sans-serif; font-size:23px; font-weight:800; text-transform:uppercase; line-height:1.08;">{{ r.name }}</div>
+                        <div style="font-size:12px; font-weight:600; opacity:0.75; margin-top:2px;">★ {{ r.rating }} · {{ r.distance }} mi · {{ r.dietLabel }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <button onClick="{{ startQuiz }}" style="width:100%; padding:17px; border-radius:100px; border:2px solid #000; background:#000; color:#73A3F5; font-family:'Big Shoulders Display',sans-serif; font-size:22px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; cursor:pointer;">Start exploring</button>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ screenIs_home }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1; display:flex; flex-direction:column; padding:20px 20px 24px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px;">
+              <div style="font-size:12px; text-transform:uppercase; letter-spacing:0.08em; font-weight:700;">📍 {{ locationLabel }}</div>
+              <button onClick="{{ goProfile }}" style="width:40px; height:40px; flex:0 0 auto; border:2px solid #000; border-radius:50%; background:#B089F4; box-shadow:3px 3px 0 #000; font-family:'Big Shoulders Display',sans-serif; font-size:17px; font-weight:800; cursor:pointer;">MR</button>
+            </div>
+            <div style="font-family:'Big Shoulders Display',sans-serif; font-size:52px; font-weight:900; line-height:1.0; text-transform:uppercase; margin-bottom:18px;">What are<br/>you craving?</div>
+
+            <div style="display:flex; background:#fff; border:2px solid #000; border-radius:100px; padding:4px; margin-bottom:14px;">
+              <button onClick="{{ setMode_near }}" style="{{ nearModeStyle }}">Near me</button>
+              <button onClick="{{ setMode_trip }}" style="{{ tripModeStyle }}">Plan a trip</button>
+            </div>
+
+            <sc-if value="{{ modeIsTrip }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ destination }}" onChange="{{ onDestinationChange }}" placeholder="Where are you headed?" style="width:100%; box-sizing:border-box; padding:14px 16px; border-radius:16px; border:2px solid #000; background:#fff; font-size:15px; font-family:inherit; margin-bottom:14px;"/>
+            </sc-if>
+
+            <div style="flex:1; display:flex; flex-direction:column; gap:12px;">
+              <div style="flex:1; background:#F98875; border:2px solid #000; border-radius:22px; padding:20px; box-shadow:5px 5px 0 #000; display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                  <div style="font-family:'Big Shoulders Display',sans-serif; font-size:32px; font-weight:800; text-transform:uppercase; line-height:1.05;">Browse<br/>every spot</div>
+                  <div style="font-size:14px; opacity:0.75; margin-top:8px; line-height:1.4;">Filter by 100% vegan, vegan options or vegetarian options.</div>
+                </div>
+                <button onClick="{{ startQuiz }}" style="align-self:flex-start; margin-top:16px; padding:13px 22px; border-radius:100px; border:2px solid #000; background:#000; color:#F98875; font-family:'Big Shoulders Display',sans-serif; font-size:19px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; cursor:pointer;">Find food</button>
+              </div>
+              <button onClick="{{ goSaved }}" style="text-align:left; background:#73A3F5; border:2px solid #000; border-radius:22px; padding:16px 20px; box-shadow:5px 5px 0 #000; cursor:pointer; font-family:inherit; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                <div>
+                  <div style="font-family:'Big Shoulders Display',sans-serif; font-size:26px; font-weight:800; text-transform:uppercase; line-height:1.08;">Saved · {{ favoriteCount }}</div>
+                  <div style="font-size:13px; opacity:0.75;">Works offline</div>
+                </div>
+                <div style="font-size:24px;">♥</div>
+              </button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ screenIs_results }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1; display:flex; flex-direction:column; position:relative; min-height:0;">
+            <sc-if value="{{ filtersOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute; inset:0; z-index:5; background:rgba(0,0,0,0.4); display:flex; flex-direction:column; justify-content:flex-end;">
+                <div onClick="{{ closeFilters }}" style="flex:1;"></div>
+                <div style="background:#FDF2EC; border-top:2px solid #000; border-radius:26px 26px 0 0; padding:22px 20px; max-height:82%; overflow-y:auto; display:flex; flex-direction:column; gap:20px;">
+                  <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <div style="font-family:'Big Shoulders Display',sans-serif; font-size:32px; font-weight:800; text-transform:uppercase; line-height:1.08;">Filters</div>
+                    <button onClick="{{ closeFilters }}" style="width:32px; height:32px; border-radius:50%; border:2px solid #000; background:#fff; font-size:15px; cursor:pointer;">✕</button>
+                  </div>
+                  <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Diet</div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                      <sc-for list="{{ dietFilters }}" as="f" hint-placeholder-count="3">
+                        <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Mood</div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                      <sc-for list="{{ moodFilters }}" as="f" hint-placeholder-count="5">
+                        <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Distance</div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                      <sc-for list="{{ distanceFilters }}" as="f" hint-placeholder-count="3">
+                        <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                  <button onClick="{{ closeFilters }}" style="padding:16px; border-radius:100px; border:2px solid #000; background:#A2DB69; font-family:'Big Shoulders Display',sans-serif; font-size:21px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; cursor:pointer;">Show {{ resultsCount }} results</button>
+                </div>
+              </div>
+            </sc-if>
+
+            <div style="padding:16px 20px 10px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+              <div style="flex:1; min-width:0; white-space:nowrap; font-family:'Big Shoulders Display',sans-serif; font-size:36px; font-weight:900; text-transform:uppercase; line-height:1.05;">{{ resultsCount }} Spots<br/>Near You</div>
+              <button onClick="{{ openFilters }}" style="flex:0 0 auto; white-space:nowrap; display:flex; align-items:center; gap:6px; padding:10px 16px; border-radius:100px; border:2px solid #000; background:#F4DC3D; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;">
+                <span style="white-space:nowrap;">Filters</span>
+                <sc-if value="{{ hasActiveFilters }}" hint-placeholder-val="{{ false }}">
+                  <span style="background:#000; color:#F4DC3D; font-size:11px; font-weight:700; border-radius:100px; padding:1px 7px;">{{ activeFilterCount }}</span>
+                </sc-if>
+              </button>
+            </div>
+
+            <div style="padding:0 20px 10px;">
+              <input value="{{ search }}" onChange="{{ onSearchChange }}" placeholder="Search food, restaurants, cafés…" style="width:100%; box-sizing:border-box; padding:13px 16px; border-radius:100px; border:2px solid #000; background:#fff; font-size:14px; font-family:inherit;"/>
+            </div>
+
+            <div style="padding:0 20px 12px; display:flex; gap:8px; align-items:center;">
+              <div style="flex:0 0 auto; display:flex; background:#fff; border:2px solid #000; border-radius:100px; padding:3px; gap:2px;">
+                <sc-for list="{{ sortOptions }}" as="opt" hint-placeholder-count="2">
+                  <button onClick="{{ opt.onClick }}" style="{{ opt.style }}">{{ opt.label }}</button>
+                </sc-for>
+              </div>
+              <div style="flex:0 0 auto; display:flex; background:#fff; border:2px solid #000; border-radius:100px; padding:3px; gap:2px;">
+                <button onClick="{{ setResultsView_list }}" style="{{ listToggleStyle }}">List</button>
+                <button onClick="{{ setResultsView_map }}" style="{{ mapToggleStyle }}">Map</button>
+              </div>
+              <sc-if value="{{ hasActiveFilters }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ clearFilters }}" style="flex:0 0 auto; white-space:nowrap; padding:9px 4px; border:none; background:transparent; font-family:inherit; font-size:13px; font-weight:700; text-decoration:underline; cursor:pointer;">Clear</button>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{ resultsViewIs_list }}" hint-placeholder-val="{{ true }}">
+              <div style="flex:1; overflow-y:auto; padding:4px 20px 16px; display:grid; grid-template-columns:1fr 1fr; gap:12px; align-content:start;">
+                <sc-for list="{{ restaurants }}" as="r" hint-placeholder-count="6">
+                  <div onClick="{{ r.onClick }}" style="{{ r.cardStyle }}">
+                    <div style="height:88px; border:2px solid #000; border-radius:14px; background:repeating-linear-gradient(45deg, rgba(0,0,0,0.09), rgba(0,0,0,0.09) 6px, rgba(255,255,255,0.5) 6px, rgba(255,255,255,0.5) 12px); position:relative;">
+                      <button onClick="{{ r.onFavorite }}" style="position:absolute; top:5px; right:5px; width:26px; height:26px; border-radius:50%; border:2px solid #000; background:#fff; font-size:12px; line-height:1; cursor:pointer; color:{{ r.favoriteColor }};">{{ r.heartIcon }}</button>
+                    </div>
+                    <div style="font-family:'Big Shoulders Display',sans-serif; font-size:23px; font-weight:800; text-transform:uppercase; line-height:1.05; margin-top:9px;">{{ r.name }}</div>
+                    <div style="font-size:12px; font-weight:600; opacity:0.72; margin-top:2px;">{{ r.cuisine }} · {{ r.priceLabel }}</div>
+                    <div style="display:flex; gap:5px; flex-wrap:wrap; margin-top:8px;">
+                      <span style="display:inline-block; white-space:nowrap; font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:100px; border:1.5px solid #000; background:#fff;">★ {{ r.rating }}</span>
+                      <span style="display:inline-block; white-space:nowrap; font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:100px; border:1.5px solid #000; background:#fff;">{{ r.distance }} mi</span>
+                      <span style="display:inline-block; white-space:nowrap; font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:100px; border:1.5px solid #000; background:#000; color:#fff;">{{ r.dietLabel }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ resultsViewIs_map }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1; display:flex; flex-direction:column; margin:0 20px 16px; min-height:0;">
+                <div style="display:flex; gap:6px; margin-bottom:10px;">
+                  <sc-for list="{{ collections }}" as="c" hint-placeholder-count="3">
+                    <button onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</button>
+                  </sc-for>
+                </div>
+                <div style="flex:1; border:2px solid #000; border-radius:22px; background:#EDE3DA; position:relative; overflow:hidden; background-image:repeating-linear-gradient(0deg, rgba(0,0,0,0.07) 0 2px, transparent 2px 44px), repeating-linear-gradient(90deg, rgba(0,0,0,0.07) 0 2px, transparent 2px 44px);">
+                  <div style="position:absolute; top:8px; left:8px; font-size:10px; font-family:monospace; background:#fff; border:1.5px solid #000; padding:2px 6px; border-radius:6px;">map placeholder</div>
+                  <sc-for list="{{ mapPins }}" as="pin" hint-placeholder-count="4">
+                    <button onClick="{{ pin.onClick }}" style="{{ pin.style }}">{{ pin.icon }}</button>
+                  </sc-for>
+                  <sc-if value="{{ hasPeek }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute; left:10px; right:10px; bottom:10px; background:#F98875; border:2px solid #000; border-radius:18px; padding:12px; box-shadow:4px 4px 0 #000; display:flex; gap:10px; align-items:center;">
+                      <div style="width:46px; height:46px; border:2px solid #000; border-radius:12px; flex:0 0 auto; background:repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 6px, rgba(255,255,255,0.5) 6px, rgba(255,255,255,0.5) 12px);"></div>
+                      <div style="flex:1; min-width:0;">
+                        <div style="font-family:'Big Shoulders Display',sans-serif; font-size:22px; font-weight:800; text-transform:uppercase; line-height:1.08;">{{ peek.name }}</div>
+                        <div style="font-size:12px; font-weight:600; opacity:0.75;">★ {{ peek.rating }} · {{ peek.priceLabel }} · {{ peek.distance }} mi</div>
+                      </div>
+                      <button onClick="{{ peek.onOpen }}" style="flex:0 0 auto; padding:9px 15px; border-radius:100px; border:2px solid #000; background:#000; color:#F98875; font-family:'Big Shoulders Display',sans-serif; font-size:16px; font-weight:800; text-transform:uppercase; cursor:pointer;">View</button>
+                    </div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ screenIs_saved }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1; display:flex; flex-direction:column; padding:18px 20px 16px; overflow-y:auto;">
+            <button onClick="{{ goHome }}" style="align-self:flex-start; flex:0 0 auto; white-space:nowrap; background:#fff; border:2px solid #000; border-radius:100px; padding:7px 14px; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer; margin-bottom:14px;">← Home</button>
+            <div style="font-family:'Big Shoulders Display',sans-serif; font-size:44px; font-weight:900; text-transform:uppercase; line-height:1.0;">Saved</div>
+            <div style="display:inline-block; align-self:flex-start; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; padding:4px 10px; border:2px solid #000; border-radius:100px; background:#A2DB69; margin:8px 0 18px;">Available offline</div>
+            <sc-if value="{{ hasFavorites }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex; flex-direction:column; gap:12px;">
+                <sc-for list="{{ savedList }}" as="r" hint-placeholder-count="2">
+                  <div onClick="{{ r.onClick }}" style="{{ r.rowStyle }}">
+                    <div style="width:58px; height:58px; border:2px solid #000; border-radius:14px; flex:0 0 auto; background:repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 6px, rgba(255,255,255,0.5) 6px, rgba(255,255,255,0.5) 12px);"></div>
+                    <div style="flex:1; min-width:0;">
+                      <div style="font-family:'Big Shoulders Display',sans-serif; font-size:25px; font-weight:800; text-transform:uppercase; line-height:1.08; padding-right:26px;">{{ r.name }}</div>
+                      <div style="font-size:12.5px; font-weight:600; opacity:0.75; margin-top:3px;">★ {{ r.rating }} · {{ r.priceLabel }} · {{ r.distance }} mi</div>
+                    </div>
+                    <button onClick="{{ r.onFavorite }}" style="position:absolute; top:10px; right:10px; width:26px; height:26px; border-radius:50%; border:2px solid #000; background:#fff; font-size:12px; cursor:pointer; color:{{ r.favoriteColor }};">{{ r.heartIcon }}</button>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noFavorites }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; font-size:14px; line-height:1.5; opacity:0.7;">
+                <div style="font-size:34px;">♡</div>
+                <div>Tap the heart on any spot to keep it here — no signal needed.</div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ screenIs_profile }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1; display:flex; flex-direction:column; padding:18px 20px 16px; overflow-y:auto;">
+            <div style="background:#B089F4; border:2px solid #000; border-radius:22px; box-shadow:5px 5px 0 #000; padding:18px; display:flex; gap:14px; align-items:center; margin-bottom:14px;">
+              <div style="width:66px; height:66px; flex:0 0 auto; border:2px solid #000; border-radius:50%; background:repeating-linear-gradient(45deg, rgba(0,0,0,0.1), rgba(0,0,0,0.1) 6px, #fff 6px, #fff 12px); display:flex; align-items:center; justify-content:center; font-family:monospace; font-size:9.5px;">photo</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-family:'Big Shoulders Display',sans-serif; font-size:34px; font-weight:900; text-transform:uppercase; line-height:1.0;">Maya Reyes</div>
+                <div style="font-size:12.5px; font-weight:600; opacity:0.75; margin-top:3px;">Los Angeles · joined 2024</div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-bottom:18px;">
+              <sc-for list="{{ profileStats }}" as="stat" hint-placeholder-count="3">
+                <div style="{{ stat.style }}">
+                  <div style="font-family:'Big Shoulders Display',sans-serif; font-size:30px; font-weight:800; line-height:1;">{{ stat.value }}</div>
+                  <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em;">{{ stat.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="background:#A2DB69; border:2px solid #000; border-radius:22px; box-shadow:5px 5px 0 #000; padding:16px; margin-bottom:18px;">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+                <div style="flex:0 0 auto;">
+                  <div style="white-space:nowrap; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">Sprout points</div>
+                  <div style="font-family:'Big Shoulders Display',sans-serif; font-size:42px; font-weight:900; line-height:1.05;">{{ rewards.points }}</div>
+                </div>
+                <div style="flex:0 0 auto; text-align:right;">
+                  <div style="display:inline-block; white-space:nowrap; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; padding:4px 10px; border:2px solid #000; border-radius:100px; background:#fff;">{{ rewards.tier }}</div>
+                  <div style="font-size:12px; font-weight:700; margin-top:6px;">🔥 {{ rewards.streak }} week streak</div>
+                </div>
+              </div>
+              <div style="height:16px; border:2px solid #000; border-radius:100px; background:#fff; overflow:hidden; margin-top:12px;">
+                <div style="{{ rewards.barStyle }}"></div>
+              </div>
+              <div style="font-size:12.5px; font-weight:600; margin-top:7px;">{{ rewards.toNext }} points to {{ rewards.nextTier }} — unlocks {{ rewards.nextPerk }}.</div>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+              <div style="font-family:'Big Shoulders Display',sans-serif; font-size:26px; font-weight:800; text-transform:uppercase; line-height:1.1;">This month's<br/>quests</div>
+              <div style="flex:0 0 auto; white-space:nowrap; font-size:11.5px; font-weight:700; opacity:0.7;">Resets in 9 days</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+              <sc-for list="{{ quests }}" as="q" hint-placeholder-count="3">
+                <div style="{{ q.cardStyle }}">
+                  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+                    <div style="font-family:'Big Shoulders Display',sans-serif; font-size:23px; font-weight:800; text-transform:uppercase; line-height:1.08;">{{ q.title }}</div>
+                    <div style="flex:0 0 auto; font-size:11px; font-weight:700; padding:3px 9px; border:2px solid #000; border-radius:100px; background:#000; color:#fff;">+{{ q.reward }}</div>
+                  </div>
+                  <div style="font-size:12.5px; font-weight:600; opacity:0.78; margin-top:4px;">{{ q.detail }}</div>
+                  <div style="height:12px; border:2px solid #000; border-radius:100px; background:#fff; overflow:hidden; margin-top:10px;">
+                    <div style="{{ q.barStyle }}"></div>
+                  </div>
+                  <div style="font-size:11.5px; font-weight:700; margin-top:5px;">{{ q.progressLabel }}</div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="font-family:'Big Shoulders Display',sans-serif; font-size:26px; font-weight:800; text-transform:uppercase; margin-bottom:4px;">Sticker book</div>
+            <div style="font-size:12.5px; opacity:0.7; margin-bottom:12px;">Earn one for every milestone. Trade nothing, brag freely.</div>
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:22px;">
+              <sc-for list="{{ stickers }}" as="st" hint-placeholder-count="8">
+                <div style="{{ st.style }}">
+                  <div style="font-size:22px; line-height:1;">{{ st.icon }}</div>
+                  <div style="font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; text-align:center; line-height:1.15; margin-top:5px;">{{ st.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="font-family:'Big Shoulders Display',sans-serif; font-size:26px; font-weight:800; text-transform:uppercase; margin-bottom:10px;">My diet</div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+              <sc-for list="{{ dietFilters }}" as="f" hint-placeholder-count="3">
+                <button onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }}</button>
+              </sc-for>
+            </div>
+            <div style="font-size:12.5px; opacity:0.7; margin-bottom:20px;">Used as the default filter every time you search.</div>
+
+            <div style="font-family:'Big Shoulders Display',sans-serif; font-size:26px; font-weight:800; text-transform:uppercase; margin-bottom:10px;">Activity</div>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+              <sc-for list="{{ profileRows }}" as="row" hint-placeholder-count="4">
+                <button onClick="{{ row.onClick }}" style="text-align:left; background:#fff; border:2px solid #000; border-radius:18px; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; font-family:inherit; cursor:pointer;">
+                  <div>
+                    <div style="font-size:14.5px; font-weight:700;">{{ row.label }}</div>
+                    <div style="font-size:12px; opacity:0.7; margin-top:2px;">{{ row.detail }}</div>
+                  </div>
+                  <div style="font-size:18px; font-weight:700;">›</div>
+                </button>
+              </sc-for>
+            </div>
+
+            <button onClick="{{ goHome }}" style="align-self:flex-start; background:transparent; border:none; padding:0; font-family:inherit; font-size:13px; font-weight:700; text-decoration:underline; cursor:pointer;">Back to home</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ screenIs_detail }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1; display:flex; flex-direction:column; overflow-y:auto;">
+            <div style="height:200px; flex:0 0 auto; background:{{ selected.color }}; border-bottom:2px solid #000; display:flex; align-items:flex-start; justify-content:space-between; padding:14px; background-image:repeating-linear-gradient(45deg, rgba(0,0,0,0.08), rgba(0,0,0,0.08) 8px, rgba(255,255,255,0.35) 8px, rgba(255,255,255,0.35) 16px);">
+              <button onClick="{{ backToResults }}" style="flex:0 0 auto; white-space:nowrap; background:#fff; border:2px solid #000; border-radius:100px; padding:8px 15px; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer;">← Back</button>
+              <button onClick="{{ selected.onFavorite }}" style="width:36px; height:36px; border-radius:50%; border:2px solid #000; background:#fff; font-size:16px; cursor:pointer; color:{{ selected.favoriteColor }};">{{ selected.heartIcon }}</button>
+            </div>
+            <div style="padding:20px;">
+              <div style="font-family:'Big Shoulders Display',sans-serif; font-size:44px; font-weight:900; text-transform:uppercase; line-height:1.0;">{{ selected.name }}</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap; margin:12px 0;">
+                <span style="display:inline-block; white-space:nowrap; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; border:2px solid #000; background:#fff;">★ {{ selected.rating }} ({{ selected.reviewCount }})</span>
+                <span style="display:inline-block; white-space:nowrap; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; border:2px solid #000; background:#fff;">{{ selected.priceLabel }}</span>
+                <span style="display:inline-block; white-space:nowrap; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; border:2px solid #000; background:#000; color:#fff;">{{ selected.dietLabel }}</span>
+                <sc-if value="{{ selected.isFastFood }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:inline-block; white-space:nowrap; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; border:2px solid #000; background:#F4DC3D;">Fast food</span>
+                </sc-if>
+                <sc-if value="{{ selected.isGem }}" hint-placeholder-val="{{ false }}">
+                  <span style="display:inline-block; white-space:nowrap; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; border:2px solid #000; background:#B089F4;">Hidden gem</span>
+                </sc-if>
+              </div>
+              <div style="font-size:14px; font-weight:600; opacity:0.75; margin-bottom:4px;">{{ selected.distance }} mi away · {{ selected.address }}</div>
+              <div style="font-size:13.5px; font-weight:700; margin-bottom:18px;">{{ selected.hours }}</div>
+
+              <div style="display:flex; gap:8px; margin-bottom:22px;">
+                <a href="{{ selected.googleMapsUrl }}" target="_blank" style="flex:1; text-align:center; padding:14px 6px; border-radius:100px; border:2px solid #000; background:#A2DB69; font-family:'Big Shoulders Display',sans-serif; font-size:18px; font-weight:800; text-transform:uppercase; text-decoration:none; color:#000;">Maps</a>
+                <a href="{{ selected.wazeUrl }}" target="_blank" style="flex:1; text-align:center; padding:14px 6px; border-radius:100px; border:2px solid #000; background:#73A3F5; font-family:'Big Shoulders Display',sans-serif; font-size:18px; font-weight:800; text-transform:uppercase; text-decoration:none; color:#000;">Waze</a>
+                <a href="tel:{{ selected.phone }}" style="flex:1; text-align:center; padding:14px 6px; border-radius:100px; border:2px solid #000; background:#fff; font-family:'Big Shoulders Display',sans-serif; font-size:18px; font-weight:800; text-transform:uppercase; text-decoration:none; color:#000;">Call</a>
+              </div>
+
+              <div style="background:#F4DC3D; border:2px solid #000; border-radius:22px; box-shadow:5px 5px 0 #000; padding:16px; margin-bottom:24px;">
+                <div style="font-family:'Big Shoulders Display',sans-serif; font-size:26px; font-weight:800; text-transform:uppercase; line-height:1.08;">Eaten here?</div>
+                <div style="font-size:13.5px; font-weight:600; opacity:0.78; margin-top:5px; line-height:1.4;">You're the 3rd person to open this page today. Be the one who says what's actually vegan.</div>
+                <div style="display:flex; gap:8px; margin-top:12px;">
+                  <button style="flex:1; padding:12px 6px; border-radius:100px; border:2px solid #000; background:#000; color:#F4DC3D; font-family:'Big Shoulders Display',sans-serif; font-size:17px; font-weight:800; text-transform:uppercase; cursor:pointer;">Review +100</button>
+                  <button style="flex:1; padding:12px 6px; border-radius:100px; border:2px solid #000; background:#fff; font-family:'Big Shoulders Display',sans-serif; font-size:17px; font-weight:800; text-transform:uppercase; cursor:pointer;">Photo +50</button>
+                </div>
+                <div style="font-size:11.5px; font-weight:700; margin-top:9px;">First review here earns the ⭐ Trailblazer sticker.</div>
+              </div>
+
+              <div style="font-family:'Big Shoulders Display',sans-serif; font-size:26px; font-weight:800; text-transform:uppercase; margin-bottom:10px;">Vegan &amp; veg options</div>
+              <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:24px;">
+                <sc-for list="{{ selected.menu }}" as="item" hint-placeholder-count="3">
+                  <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; background:#fff; border:2px solid #000; border-radius:16px; padding:11px 14px;">
+                    <div style="font-size:14px; font-weight:600;">{{ item.name }}</div>
+                    <div style="flex:0 0 auto; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; padding:3px 9px; border-radius:100px; border:1.5px solid #000; background:{{ item.color }};">{{ item.tag }}</div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="font-size:14px; line-height:1.5; opacity:0.8; margin-bottom:24px;">{{ selected.note }}</div>
+
+              <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;">
+                <div style="font-family:'Big Shoulders Display',sans-serif; font-size:26px; font-weight:800; text-transform:uppercase;">Photos</div>
+                <div style="font-size:12px; font-weight:600; opacity:0.7;">{{ selected.photoCount }} photos</div>
+              </div>
+              <div style="display:flex; gap:8px; margin-bottom:26px;">
+                <div style="flex:1; aspect-ratio:1; border:2px solid #000; border-radius:14px; background:repeating-linear-gradient(45deg, rgba(0,0,0,0.08), rgba(0,0,0,0.08) 6px, #fff 6px, #fff 12px);"></div>
+                <div style="flex:1; aspect-ratio:1; border:2px solid #000; border-radius:14px; background:repeating-linear-gradient(45deg, rgba(0,0,0,0.08), rgba(0,0,0,0.08) 6px, #fff 6px, #fff 12px);"></div>
+                <div style="flex:1; aspect-ratio:1; border:2px solid #000; border-radius:14px; background:repeating-linear-gradient(45deg, rgba(0,0,0,0.08), rgba(0,0,0,0.08) 6px, #fff 6px, #fff 12px);"></div>
+              </div>
+
+              <div style="font-family:'Big Shoulders Display',sans-serif; font-size:26px; font-weight:800; text-transform:uppercase; margin-bottom:10px;">Reviews · {{ selected.reviewCount }}</div>
+              <div style="display:flex; flex-direction:column; gap:10px;">
+                <sc-for list="{{ selected.reviews }}" as="rev" hint-placeholder-count="2">
+                  <div style="background:#fff; border:2px solid #000; border-radius:18px; padding:14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                      <div style="font-size:13.5px; font-weight:700;">{{ rev.author }}</div>
+                      <div style="font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:100px; border:1.5px solid #000; background:#F4DC3D;">★ {{ rev.rating }}</div>
+                    </div>
+                    <div style="font-size:13.5px; line-height:1.5; opacity:0.8;">{{ rev.text }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ showNav }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:0 0 auto; padding:6px 20px 12px;">
+            <div style="display:flex; background:#000; border:2px solid #000; border-radius:100px; padding:5px; gap:4px;">
+              <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="3">
+                <button onClick="{{ item.onClick }}" style="{{ item.style }}">{{ item.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </x-import>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+
+const C = { green: '#A2DB69', purple: '#B089F4', coral: '#F98875', yellow: '#F4DC3D', blue: '#73A3F5', orange: '#F4A03B' };
+const CARD_COLORS = [C.green, C.purple, C.coral, C.yellow, C.blue, C.orange];
+
+const RESTAURANTS = [
+  { id: 'r1', name: "Green Fork", cuisine: "American", distance: 0.4, address: "112 Maple St", isFastFood: false, dietCategory: 'veganOptions',
+    rating: 4.6, reviewCount: 214, photoCount: 340, price: 2, phone: "+15551012233", hours: "Open until 9:00 PM",
+    menu: [ {name:"Jackfruit BBQ Bowl", tag:"vegan"}, {name:"Loaded Veggie Nachos", tag:"vegetarian"}, {name:"Cashew Mac & Cheese", tag:"vegan"} ],
+    note: "Fully separate vegan kitchen. Staff trained on cross-contact.",
+    reviews: [ {author:"Dana M.", rating:5, text:"The jackfruit bowl is incredible, and they clearly know how to handle vegan orders separately."}, {author:"Priya K.", rating:4, text:"Great spot for a casual dinner, portions are generous."} ] },
+  { id: 'r2', name: "Basil & Bloom", cuisine: "Italian", distance: 0.9, address: "58 Pine Ave", isFastFood: false, dietCategory: 'vegetarian',
+    rating: 4.3, reviewCount: 98, photoCount: 152, price: 3, phone: "+15551023344", hours: "Open until 10:00 PM",
+    menu: [ {name:"Wild Mushroom Risotto", tag:"vegetarian"}, {name:"Vegan Margherita", tag:"vegan"}, {name:"Eggplant Parmesan", tag:"vegetarian"} ],
+    note: "Most pastas can be made vegan on request.",
+    reviews: [ {author:"Marco T.", rating:4, text:"Risotto was rich and the vegan margherita didn't skimp on flavor."} ] },
+  { id: 'r3', name: "Loco Verde", cuisine: "Mexican", distance: 2.4, address: "900 Ocean Blvd", isFastFood: true, dietCategory: 'veganOptions',
+    rating: 4.1, reviewCount: 156, photoCount: 210, price: 1, phone: "+15551034455", hours: "Open until 11:00 PM",
+    menu: [ {name:"Jackfruit Carnitas Tacos", tag:"vegan"}, {name:"Queso Fresco Bowl", tag:"vegetarian"}, {name:"Black Bean Burrito", tag:"vegan"} ],
+    note: "Quick-service counter. Ask for the vegan menu insert.",
+    reviews: [ {author:"Sam R.", rating:4, text:"Fast and the vegan tacos actually taste like something."} ] },
+  { id: 'r4', name: "Bamboo Bowl", cuisine: "Asian", distance: 5.3, address: "24 Harbor Rd", isFastFood: false, dietCategory: 'vegan',
+    rating: 4.8, reviewCount: 302, photoCount: 410, price: 2, phone: "+15551045566", hours: "Open until 9:30 PM",
+    menu: [ {name:"Tofu Pad See Ew", tag:"vegan"}, {name:"Miso Eggplant", tag:"vegan"}, {name:"Coconut Curry", tag:"vegan"} ],
+    note: "100% plant-based menu, no animal products in the kitchen.",
+    reviews: [ {author:"Lena W.", rating:5, text:"Best fully vegan Asian spot in the area, the curry is unreal."}, {author:"Josh P.", rating:5, text:"Never worry about cross-contact here, everything's plant-based."} ] },
+  { id: 'r5', name: "Patty Shack", cuisine: "American", distance: 6.7, address: "77 Fifth Ave", isFastFood: true, dietCategory: 'veganOptions',
+    rating: 3.9, reviewCount: 87, photoCount: 96, price: 1, phone: "+15551056677", hours: "Open until midnight",
+    menu: [ {name:"Beyond Burger", tag:"vegan"}, {name:"Cheddar Melt", tag:"vegetarian"}, {name:"Sweet Potato Fries", tag:"vegan"} ],
+    note: "Drive-thru available. Vegan patty cooked on shared grill.",
+    reviews: [ {author:"Omar F.", rating:3, text:"Solid late-night option, just double-check the grill situation."} ] },
+  { id: 'r6', name: "Terra Verde", cuisine: "Mexican", distance: 12.1, address: "410 Sunset Way", isFastFood: false, dietCategory: 'vegan',
+    rating: 4.9, reviewCount: 176, photoCount: 260, price: 2, phone: "+15551067788", hours: "Open until 9:00 PM",
+    menu: [ {name:"Cauliflower Al Pastor", tag:"vegan"}, {name:"Cashew Queso Tacos", tag:"vegan"} ],
+    note: "Fully plant-based taqueria.",
+    reviews: [ {author:"Ilana G.", rating:5, text:"A hidden gem worth the drive, the al pastor is genuinely shocking."} ] },
+  { id: 'r7', name: "Noodle & Ninth", cuisine: "Asian", distance: 8.9, address: "203 Elm St", isFastFood: false, dietCategory: 'vegetarian',
+    rating: 4.4, reviewCount: 121, photoCount: 178, price: 2, phone: "+15551078899", hours: "Open until 10:00 PM",
+    menu: [ {name:"Veggie Dumplings", tag:"vegetarian"}, {name:"Tofu Ramen", tag:"vegan"} ],
+    note: "Vegetarian menu, ask about vegan broth swap.",
+    reviews: [ {author:"Chris B.", rating:4, text:"Dumplings are excellent, ramen broth can be swapped vegan on request."} ] },
+];
+
+const SORTS = [ ['distance','Distance'], ['rating','Rating'] ];
+const DIET_FILTERS = [ ['vegan','100% Vegan'], ['veganOptions','Vegan Options'], ['vegetarian','Vegetarian Options'] ];
+const MOOD_FILTERS = [ ['any','Anything'], ['Italian','Italian'], ['Mexican','Mexican'], ['Asian','Asian'], ['American','American'] ];
+const DISTANCE_FILTERS = [ ['near','Less than 3 mi'], ['mid','3 to 10 mi'], ['far','More than 10 mi'] ];
+const COLLECTIONS = [ ['all','All'], ['popular','Popular'], ['gems','Hidden gems'] ];
+const DIET_LABEL = { vegan: '100% Vegan', veganOptions: 'Vegan opts', vegetarian: 'Veg opts' };
+const distanceBucket = (d) => d < 3 ? 'near' : d <= 10 ? 'mid' : 'far';
+const isGem = (r) => r.rating >= 4.7 && r.reviewCount < 200;
+
+class Component extends DCLogic {
+  state = {
+    view: 'proto', screen: 'demo',
+    diet: [], mood: 'any', distance: 'any', search: '',
+    resultsView: 'list', selectedId: null, filtersOpen: false,
+    sort: 'distance', favorites: [], mode: 'near', destination: '',
+    collection: 'all', peekId: null, onboardStep: 1,
+  };
+  onboardNext = () => this.setState(s => (s.onboardStep >= 3 ? { screen: 'results' } : { onboardStep: s.onboardStep + 1 }));
+
+  goHome = () => this.setState({ screen: 'home' });
+  goSaved = () => this.setState({ screen: 'saved' });
+  goProfile = () => this.setState({ screen: 'profile' });
+  startQuiz = () => this.setState({ screen: 'results' });
+  setView = (v) => this.setState({ view: v });
+  setMode = (m) => this.setState({ mode: m });
+  setDestination = (v) => this.setState({ destination: v });
+  setSearch = (v) => this.setState({ search: v });
+  setSort = (v) => this.setState({ sort: v });
+  setResultsView = (v) => this.setState({ resultsView: v });
+  setCollection = (c) => this.setState({ collection: c, peekId: null });
+  setPeek = (id) => this.setState({ peekId: id });
+  openFilters = () => this.setState({ filtersOpen: true });
+  closeFilters = () => this.setState({ filtersOpen: false });
+  clearFilters = () => this.setState({ diet: [], mood: 'any', distance: 'any' });
+  toggleDiet = (key) => this.setState(s => ({ diet: s.diet.includes(key) ? s.diet.filter(k => k !== key) : [...s.diet, key] }));
+  setMood = (key) => this.setState({ mood: key });
+  setDistance = (key) => this.setState({ distance: key });
+  toggleFavorite = (id, e) => {
+    if (e) e.stopPropagation();
+    this.setState(s => ({ favorites: s.favorites.includes(id) ? s.favorites.filter(f => f !== id) : [...s.favorites, id] }));
+  };
+  openDetail = (id) => this.setState({ screen: 'detail', selectedId: id });
+  backToResults = () => this.setState({ screen: 'results' });
+
+  filterResults() {
+    const s = this.state;
+    const q = s.search.trim().toLowerCase();
+    const list = RESTAURANTS.filter(r => {
+      if (s.diet.length && !s.diet.includes(r.dietCategory)) return false;
+      if (s.mood !== 'any' && r.cuisine !== s.mood) return false;
+      if (s.distance !== 'any' && distanceBucket(r.distance) !== s.distance) return false;
+      if (q && !r.name.toLowerCase().includes(q) && !r.cuisine.toLowerCase().includes(q) && !r.address.toLowerCase().includes(q)) return false;
+      if (s.resultsView === 'map' && s.collection === 'popular' && r.reviewCount < 150) return false;
+      if (s.resultsView === 'map' && s.collection === 'gems' && !isGem(r)) return false;
+      return true;
+    });
+    list.sort((a, b) => s.sort === 'rating' ? b.rating - a.rating : a.distance - b.distance);
+    return list;
+  }
+
+  renderVals() {
+    const s = this.state;
+    const pillOn = "white-space:nowrap; padding:8px 15px; border-radius:100px; border:none; background:#000; color:#fff; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer;";
+    const pillOff = "white-space:nowrap; padding:8px 15px; border-radius:100px; border:none; background:transparent; color:#000; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer;";
+    const tabOn = "padding:10px 22px; border-radius:100px; border:none; background:#000; color:#A2DB69; font-family:'Big Shoulders Display',sans-serif; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; cursor:pointer;";
+    const tabOff = "padding:10px 22px; border-radius:100px; border:none; background:transparent; color:#000; font-family:'Big Shoulders Display',sans-serif; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; cursor:pointer;";
+    const chip = (active) => `flex:0 0 auto; white-space:nowrap; padding:9px 15px; border-radius:100px; border:2px solid #000; background:${active ? '#000' : '#fff'}; color:${active ? '#fff' : '#000'}; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer;`;
+
+    const flowSteps = [
+      { n: 1, title: "Intro", desc: "The pitch: reviews and photos from people who eat this way.", color: C.green, hasArrow: true },
+      { n: 2, title: "Home", desc: "Near me or plan a trip; shortcut into saved places.", color: C.yellow, hasArrow: true },
+      { n: 3, title: "Search", desc: "Search plus diet, mood, distance filters and sorting.", color: C.coral, hasArrow: true },
+      { n: 4, title: "List or map", desc: "Card grid, or curated maps: all, popular, hidden gems.", color: C.blue, hasArrow: true },
+      { n: 5, title: "Detail", desc: "Menu options, photos, reviews, directions in Maps or Waze.", color: C.purple, hasArrow: true },
+      { n: 6, title: "Saved", desc: "Favorites kept available offline.", color: C.orange, hasArrow: false },
+    ];
+
+    const filtered = this.filterResults();
+    const priceLabel = (p) => '$'.repeat(p);
+    const favBits = (r) => {
+      const on = s.favorites.includes(r.id);
+      return { onFavorite: (e) => this.toggleFavorite(r.id, e), favoriteColor: on ? '#D9403A' : '#000', heartIcon: on ? '♥' : '♡' };
+    };
+    const colorFor = (r) => CARD_COLORS[RESTAURANTS.findIndex(x => x.id === r.id) % CARD_COLORS.length];
+
+    const restaurants = filtered.map(r => ({
+      ...r, priceLabel: priceLabel(r.price), dietLabel: DIET_LABEL[r.dietCategory],
+      onClick: () => this.openDetail(r.id), ...favBits(r),
+      cardStyle: `background:${colorFor(r)}; border:2px solid #000; border-radius:20px; box-shadow:4px 4px 0 #000; padding:10px; cursor:pointer; display:flex; flex-direction:column;`,
+    }));
+
+    const savedList = RESTAURANTS.filter(r => s.favorites.includes(r.id)).map(r => ({
+      ...r, priceLabel: priceLabel(r.price), onClick: () => this.openDetail(r.id), ...favBits(r),
+      rowStyle: `position:relative; background:${colorFor(r)}; border:2px solid #000; border-radius:20px; box-shadow:4px 4px 0 #000; padding:12px; display:flex; gap:12px; align-items:center; cursor:pointer;`,
+    }));
+
+    const base = s.selectedId ? RESTAURANTS.find(r => r.id === s.selectedId) : RESTAURANTS[0];
+    let selected = null;
+    if (base) {
+      const q = encodeURIComponent(`${base.name} ${base.address}`);
+      selected = {
+        ...base, priceLabel: priceLabel(base.price), dietLabel: DIET_LABEL[base.dietCategory],
+        color: colorFor(base), isGem: isGem(base), ...favBits(base),
+        menu: base.menu.map(m => ({ ...m, color: m.tag === 'vegan' ? C.green : C.yellow })),
+        googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${q}`,
+        wazeUrl: `https://waze.com/ul?q=${q}&navigate=yes`,
+      };
+    }
+
+    const peekRaw = s.peekId ? RESTAURANTS.find(r => r.id === s.peekId) : null;
+    const peek = peekRaw ? { ...peekRaw, priceLabel: priceLabel(peekRaw.price), onOpen: () => this.openDetail(peekRaw.id) } : null;
+
+    const summary = s.diet.map(k => DIET_LABEL[k]);
+    if (s.mood !== 'any') summary.push(s.mood);
+    if (s.distance !== 'any') summary.push(DISTANCE_FILTERS.find(d => d[0] === s.distance)[1]);
+
+    return {
+      isFlow: s.view === 'flow', isProto: s.view === 'proto',
+      setView_proto: () => this.setView('proto'), setView_flow: () => this.setView('flow'),
+      tabStyleProto: s.view === 'proto' ? tabOn : tabOff, tabStyleFlow: s.view === 'flow' ? tabOn : tabOff,
+      flowSteps,
+      onboardBg: { 1: C.green, 2: C.coral, 3: C.blue }[s.onboardStep],
+      onboardIs1: s.onboardStep === 1, onboardIs2: s.onboardStep === 2, onboardIs3: s.onboardStep === 3,
+      onboardCanSkip: s.onboardStep < 3,
+      onboardNext: this.onboardNext,
+      onboardDots: [1, 2, 3].map(n => ({
+        style: `width:${n === s.onboardStep ? '26px' : '9px'}; height:9px; border-radius:100px; border:2px solid #000; background:${n <= s.onboardStep ? '#000' : 'transparent'};`
+      })),
+      onboardDietCards: [
+        ['vegan', '100% Vegan', 'Only kitchens with no animal products at all.'],
+        ['veganOptions', 'Vegan options', 'Any restaurant with dishes marked vegan.'],
+        ['vegetarian', 'Vegetarian options', 'Meat-free dishes, dairy and egg are fine.'],
+      ].map(([k, label, detail]) => {
+        const on = s.diet.includes(k);
+        return { label, detail, onClick: () => this.toggleDiet(k),
+          style: `text-align:left; background:${on ? '#000' : '#fff'}; color:${on ? '#fff' : '#000'}; border:2px solid #000; border-radius:20px; box-shadow:4px 4px 0 #000; padding:14px 16px; font-family:inherit; cursor:pointer;` };
+      }),
+      onboardStep2Cta: s.diet.length ? 'Looks right' : 'Show me everything',
+      onboardTeaserLine: s.diet.length
+        ? 'Matching your diet, closest first. Tap any spot for dish-level detail.'
+        : 'Everything nearby with vegan or vegetarian options, closest first.',
+      onboardTeaser: filtered.slice(0, 3).map(r => ({
+        ...r, dietLabel: DIET_LABEL[r.dietCategory],
+        rowStyle: `background:#fff; border:2px solid #000; border-radius:18px; box-shadow:4px 4px 0 #000; padding:11px; display:flex; gap:11px; align-items:center;`,
+      })),
+      deviceTitle: { demo: 'Grub', home: 'Home', results: 'Explore', saved: 'Saved', profile: 'You', detail: selected ? selected.name : '' }[s.screen],
+      screenIs_demo: s.screen === 'demo', screenIs_home: s.screen === 'home',
+      screenIs_results: s.screen === 'results', screenIs_saved: s.screen === 'saved', screenIs_detail: s.screen === 'detail',
+      screenIs_profile: s.screen === 'profile',
+      goHome: this.goHome, goSaved: this.goSaved, goProfile: this.goProfile, startQuiz: this.startQuiz, backToResults: this.backToResults,
+      profileStats: [
+        { value: '24', label: 'Reviews', bg: C.green },
+        { value: '68', label: 'Photos', bg: C.yellow },
+        { value: String(s.favorites.length), label: 'Saved', bg: C.coral },
+      ].map(st => ({ ...st, style: `flex:1; background:${st.bg}; border:2px solid #000; border-radius:18px; box-shadow:4px 4px 0 #000; padding:12px;` })),
+      rewards: (() => {
+        const points = 1240, next = 1500;
+        return {
+          points: points.toLocaleString(), tier: 'Sprout II', streak: 6,
+          nextTier: 'Sapling', nextPerk: 'early access to new city maps',
+          toNext: next - points,
+          barStyle: `height:100%; width:${Math.round((points / next) * 100)}%; background:#000;`,
+        };
+      })(),
+      quests: [
+        { title: 'Photo run', detail: 'Add photos at 3 different spots.', reward: 150, done: 2, goal: 3, bg: C.coral },
+        { title: 'Say the details', detail: 'Write a review that names a vegan dish.', reward: 100, done: 0, goal: 1, bg: C.blue },
+        { title: 'Off the beaten path', detail: 'Review a hidden gem more than 5 mi out.', reward: 200, done: 1, goal: 2, bg: C.purple },
+      ].map(q => ({
+        ...q,
+        cardStyle: `background:${q.bg}; border:2px solid #000; border-radius:20px; box-shadow:4px 4px 0 #000; padding:14px;`,
+        barStyle: `height:100%; width:${Math.round((q.done / q.goal) * 100)}%; background:#000;`,
+        progressLabel: `${q.done} of ${q.goal} done`,
+      })),
+      stickers: [
+        { icon: '🌱', label: 'First review', earned: true },
+        { icon: '📸', label: '10 photos', earned: true },
+        { icon: '⭐', label: 'Trailblazer', earned: true },
+        { icon: '🔥', label: '4 wk streak', earned: true },
+        { icon: '💎', label: 'Gem hunter', earned: false },
+        { icon: '🗺️', label: '3 cities', earned: false },
+        { icon: '🥑', label: '50 reviews', earned: false },
+        { icon: '👑', label: 'Top local', earned: false },
+      ].map(st => ({
+        ...st,
+        style: `aspect-ratio:1; border:2px solid #000; border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:4px; background:${st.earned ? '#fff' : 'rgba(0,0,0,0.06)'}; box-shadow:${st.earned ? '3px 3px 0 #000' : 'none'}; opacity:${st.earned ? 1 : 0.45};`,
+      })),
+      profileRows: [
+        { label: 'My reviews', detail: '24 places reviewed', onClick: this.goProfile },
+        { label: 'My photos', detail: '68 uploads', onClick: this.goProfile },
+        { label: 'Saved places', detail: `${s.favorites.length} available offline`, onClick: this.goSaved },
+        { label: 'Suggest a spot', detail: 'Add somewhere we\u2019re missing', onClick: this.goProfile },
+      ],
+      locationLabel: s.mode === 'trip' ? (s.destination || 'Planning a trip') : 'Current location',
+      modeIsTrip: s.mode === 'trip',
+      setMode_near: () => this.setMode('near'), setMode_trip: () => this.setMode('trip'),
+      nearModeStyle: s.mode === 'near' ? pillOn : pillOff, tripModeStyle: s.mode === 'trip' ? pillOn : pillOff,
+      destination: s.destination, onDestinationChange: (e) => this.setDestination(e.target.value),
+      search: s.search, onSearchChange: (e) => this.setSearch(e.target.value),
+      dietFilters: DIET_FILTERS.map(([k, l]) => ({ label: l, onClick: () => this.toggleDiet(k), style: chip(s.diet.includes(k)) })),
+      moodFilters: MOOD_FILTERS.map(([k, l]) => ({ label: l, onClick: () => this.setMood(k), style: chip(s.mood === k) })),
+      distanceFilters: DISTANCE_FILTERS.map(([k, l]) => ({ label: l, onClick: () => this.setDistance(k), style: chip(s.distance === k) })),
+      collections: COLLECTIONS.map(([k, l]) => ({ label: l, onClick: () => this.setCollection(k), style: chip(s.collection === k) })),
+      sortOptions: SORTS.map(([k, l]) => ({ label: l, onClick: () => this.setSort(k), style: s.sort === k ? pillOn : pillOff })),
+      listToggleStyle: s.resultsView === 'list' ? pillOn : pillOff,
+      mapToggleStyle: s.resultsView === 'map' ? pillOn : pillOff,
+      setResultsView_list: () => this.setResultsView('list'), setResultsView_map: () => this.setResultsView('map'),
+      resultsViewIs_list: s.resultsView === 'list', resultsViewIs_map: s.resultsView === 'map',
+      filtersOpen: s.filtersOpen, openFilters: this.openFilters, closeFilters: this.closeFilters, clearFilters: this.clearFilters,
+      hasActiveFilters: s.diet.length > 0 || s.mood !== 'any' || s.distance !== 'any',
+      activeFilterCount: s.diet.length + (s.mood !== 'any' ? 1 : 0) + (s.distance !== 'any' ? 1 : 0),
+      resultsCount: filtered.length, resultsSummary: summary.join(' · ') || 'All nearby spots',
+      restaurants, savedList, selected, peek, hasPeek: !!peek,
+      favoriteCount: s.favorites.length, hasFavorites: savedList.length > 0, noFavorites: savedList.length === 0,
+      mapPins: filtered.map((r, i) => ({
+        onClick: () => this.setPeek(r.id),
+        icon: isGem(r) ? '💎' : '📍',
+        style: `position:absolute; left:${15 + (i * 17) % 70}%; top:${18 + (i * 23) % 52}%; background:none; border:none; font-size:${s.peekId === r.id ? '34px' : '27px'}; cursor:pointer; filter:drop-shadow(0 2px 0 rgba(0,0,0,0.5));`
+      })),
+      showNav: ['results', 'saved', 'profile'].includes(s.screen),
+      navItems: [
+        { label: 'Explore', active: s.screen === 'results' && s.resultsView === 'list', onClick: () => this.setState({ screen: 'results', resultsView: 'list' }) },
+        { label: 'Map', active: s.screen === 'results' && s.resultsView === 'map', onClick: () => this.setState({ screen: 'results', resultsView: 'map' }) },
+        { label: 'Saved', active: s.screen === 'saved', onClick: this.goSaved },
+        { label: 'You', active: s.screen === 'profile', onClick: this.goProfile },
+      ].map(i => ({ ...i, style: `flex:1; padding:11px 0; border-radius:100px; border:none; cursor:pointer; font-family:'Big Shoulders Display',sans-serif; font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em; background:${i.active ? '#A2DB69' : 'transparent'}; color:${i.active ? '#000' : '#fff'};` })),
+    };
+  }
+}
+
+</script>
+</body>
+</html>
