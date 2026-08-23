@@ -11,9 +11,9 @@ export function DataSourceBanner({ status, usingSampleData }: Props) {
 
   let message: string;
   if (status === 'no-api-key') {
-    message = 'No Google Places API key configured — showing fictional sample restaurants. See README-GOOGLE-PLACES-SETUP.md.';
+    message = 'No Yelp or Google Places API key configured — showing fictional sample restaurants. See README-YELP-SETUP.md.';
   } else if (status === 'error') {
-    message = "Couldn't reach Google Places — showing fictional sample restaurants instead.";
+    message = "Couldn't reach Yelp or Google Places — showing fictional sample restaurants instead.";
   } else if (status === 'loading') {
     return null; // skeleton covers this case
   } else {

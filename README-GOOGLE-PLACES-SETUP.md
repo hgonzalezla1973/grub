@@ -1,7 +1,10 @@
 # Getting a Google Places API key for Grub
 
-The app searches for real nearby vegan/vegetarian restaurants using Google's
-Places API (New). You need your own API key — this only takes a few minutes.
+Grub's primary restaurant source is Yelp (see `README-YELP-SETUP.md`) — its
+vegan/vegetarian categories are a better fit than Google's generic place
+types. This Google Places key is an **automatic fallback**, used only if Yelp
+is unreachable or not configured. Still worth setting up for resilience, but
+optional if Yelp alone is working for you.
 
 ## 1. Create a Google Cloud project
 

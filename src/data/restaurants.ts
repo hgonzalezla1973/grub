@@ -34,7 +34,11 @@ export interface Restaurant {
   lng?: number;
   /** Present for restaurants sourced from the Google Places API (as opposed to sample data). */
   placeId?: string;
+  /** Google's photos need a key-bearing URL built at render time — see services/googlePlaces.photoUrl(). */
   photoName?: string;
+  /** Yelp (and any future source that hands back a ready-to-use image) sets this directly instead. */
+  photoUrl?: string;
+  source?: 'yelp' | 'google';
 }
 
 export const RESTAURANTS: Restaurant[] = [

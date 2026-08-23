@@ -7,7 +7,8 @@ import {
   type Restaurant,
 } from '../data/restaurants';
 import { destinationPoint, haversineMiles, hashBearing, type Coords } from '../utils/geo';
-import { hasApiKey, searchVeganVegetarianNearby } from '../services/googlePlaces';
+import { hasApiKey as hasGoogleApiKey, searchVeganVegetarianNearby as searchGoogleNearby } from '../services/googlePlaces';
+import { searchVeganVegetarianNearby as searchYelpNearby } from '../services/yelp';
 
 export type RestaurantsStatus = 'idle' | 'loading' | 'ready' | 'error' | 'no-api-key';
 
@@ -149,19 +150,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const backToResults = useCallback(() => patch({ screen: 'results' }), [patch]);
   const setUserLocation = useCallback((loc: Coords | null) => patch({ userLocation: loc }), [patch]);
 
-  const loadNearbyRestaurants = useCallback((loc: Coords) => {
-    if (!hasApiKey()) {
+  const tryGoogleFallback = useCallback((loc: Coords) => {
+    if (!hasGoogleApiKey()) {
       patch({ restaurantsStatus: 'no-api-key' });
       return;
     }
-    patch({ restaurantsStatus: 'loading' });
-    searchVeganVegetarianNearby(loc)
+    return searchGoogleNearby(loc)
       .then((results) => setState((s) => ({ ...s, apiRestaurants: results, restaurantsStatus: 'ready' })))
       .catch((e) => {
-        console.warn('[places] nearby search failed', e);
+        console.warn('[places] fallback search failed', e);
         setState((s) => ({ ...s, restaurantsStatus: 'error' }));
       });
   }, [patch]);
+
+  const loadNearbyRestaurants = useCallback((loc: Coords) => {
+    patch({ restaurantsStatus: 'loading' });
+
+    // Yelp's dedicated vegan/vegetarian categories are a better fit than Google's generic
+    // place types, so it goes first; Google (client-callable, no backend needed) is the
+    // fallback if the proxy is unreachable, misconfigured, or just turns up nothing.
+    searchYelpNearby(loc)
+      .then((yelpResults) => {
+        if (yelpResults.length > 0) {
+          setState((s) => ({ ...s, apiRestaurants: yelpResults, restaurantsStatus: 'ready' }));
+          return;
+        }
+        return tryGoogleFallback(loc);
+      })
+      .catch((e) => {
+        console.warn('[yelp] nearby search failed, falling back to Google Places', e);
+        return tryGoogleFallback(loc);
+      });
+  }, [tryGoogleFallback, patch]);
 
   /**
    * Real Google Places results take priority once loaded. Until then (or if no API key is

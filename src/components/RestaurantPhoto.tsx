@@ -15,8 +15,9 @@ interface Props {
   style?: CSSProperties;
 }
 
-/** Real Google Places photo when the restaurant came from a live search; the
- *  neo-brutalist stripe placeholder otherwise (sample data has no real photo). */
+/** Real photo when the restaurant came from a live search (a direct URL from Yelp,
+ *  or one built from Google's photo reference); the neo-brutalist stripe placeholder
+ *  otherwise (sample data has no real photo). */
 export function RestaurantPhoto({
   restaurant,
   width = '100%',
@@ -27,7 +28,9 @@ export function RestaurantPhoto({
   baseColor,
   style,
 }: Props) {
-  if (!restaurant.photoName) {
+  const src = restaurant.photoUrl ?? (restaurant.photoName ? photoUrl(restaurant.photoName, 640) : undefined);
+
+  if (!src) {
     return (
       <PhotoPlaceholder width={width} height={height} radius={radius} bordered={bordered} onColor={onColor} baseColor={baseColor} style={style} />
     );
@@ -46,7 +49,7 @@ export function RestaurantPhoto({
       }}
     >
       <img
-        src={photoUrl(restaurant.photoName, 640)}
+        src={src}
         alt={restaurant.name}
         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
       />
