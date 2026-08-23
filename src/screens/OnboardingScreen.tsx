@@ -289,9 +289,11 @@ function StepTwo() {
 function StepThree() {
   const app = useApp();
   const teaser = app.filteredRestaurants.slice(0, 3);
-  const line = app.diet.length
-    ? 'Matching your diet, closest first. Tap any spot for dish-level detail.'
-    : 'Everything nearby with vegan or vegetarian options, closest first.';
+  const line =
+    (app.diet.length
+      ? 'Matching your diet, closest first. Tap any spot for dish-level detail.'
+      : 'Everything nearby with vegan or vegetarian options, closest first.') +
+    (app.usingSampleData ? ' (Sample data — these are fictional demo listings, not real restaurants.)' : '');
 
   return (
     <>
