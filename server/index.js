@@ -20,12 +20,18 @@ app.use(cors());
 const YELP_PAGE_SIZE = 50;
 const YELP_MAX_RESULTS = 200; // safety cap: at most 4 upstream calls per search
 
-function buildYelpSearchUrl(lat, lng, offset) {
+/** location is a plain "Austin, TX" style string — Yelp resolves it server-side, no
+ *  geocoding needed on our end. Mutually exclusive with lat/lng in practice. */
+function buildYelpSearchUrl({ lat, lng, location, offset }) {
   const url = new URL('https://api.yelp.com/v3/businesses/search');
-  url.searchParams.set('latitude', String(lat));
-  url.searchParams.set('longitude', String(lng));
+  if (location) {
+    url.searchParams.set('location', location);
+  } else {
+    url.searchParams.set('latitude', String(lat));
+    url.searchParams.set('longitude', String(lng));
+    url.searchParams.set('radius', '16000'); // meters, ~10 mi, Yelp's max is 40000
+  }
   url.searchParams.set('categories', 'vegan,vegetarian');
-  url.searchParams.set('radius', '16000'); // meters, ~10 mi, Yelp's max is 40000
   url.searchParams.set('limit', String(YELP_PAGE_SIZE));
   url.searchParams.set('offset', String(offset));
   url.searchParams.set('sort_by', 'best_match');
@@ -44,9 +50,9 @@ app.get('/api/yelp/search', async (req, res) => {
     return res.status(500).json({ error: 'YELP_API_KEY is not configured on the server.' });
   }
 
-  const { lat, lng } = req.query;
-  if (!lat || !lng) {
-    return res.status(400).json({ error: 'lat and lng query params are required.' });
+  const { lat, lng, city } = req.query;
+  if (!city && (!lat || !lng)) {
+    return res.status(400).json({ error: 'Either city, or both lat and lng, query params are required.' });
   }
 
   try {
@@ -54,7 +60,7 @@ app.get('/api/yelp/search', async (req, res) => {
     let total = Infinity;
 
     for (let offset = 0; offset < YELP_MAX_RESULTS && offset < total; offset += YELP_PAGE_SIZE) {
-      const yelpRes = await fetch(buildYelpSearchUrl(lat, lng, offset), {
+      const yelpRes = await fetch(buildYelpSearchUrl({ lat, lng, location: city, offset }), {
         headers: { Authorization: `Bearer ${YELP_API_KEY}` },
       });
       const data = await yelpRes.json();

@@ -101,6 +101,17 @@ function getCurrentPosition(options: PositionOptions): Promise<GeolocationPositi
 function StepOne() {
   const app = useApp();
   const [status, setStatus] = useState<LocationStatus>('idle');
+  const [showCityInput, setShowCityInput] = useState(false);
+  const [city, setCity] = useState('');
+
+  const handleCitySubmit = () => {
+    const trimmed = city.trim();
+    if (!trimmed) return;
+    app.setDestination(trimmed);
+    app.setMode('trip');
+    app.loadRestaurantsForCity(trimmed);
+    app.onboardNext();
+  };
 
   const handleUseLocation = async () => {
     setStatus('requesting');
@@ -180,35 +191,81 @@ function StepOne() {
         </div>
       </div>
 
-      {status === 'denied' && (
+      {!showCityInput && status === 'denied' && (
         <MessageBox title="Location access is off">
           Turn it on any time via your browser's site settings, or just enter a city below to keep going.
         </MessageBox>
       )}
 
-      {status === 'blocked' && (
+      {!showCityInput && status === 'blocked' && (
         <MessageBox title="Location was already turned off">
           Your browser already remembers a "no" for this site, so it won't prompt again here. Click the padlock/site-info
           icon next to the address bar to re-enable location, or just enter a city below.
         </MessageBox>
       )}
 
-      {status === 'unavailable' && (
+      {!showCityInput && status === 'unavailable' && (
         <MessageBox title="Couldn't get a location fix">
           Permission was granted, but we couldn't read a position (weak signal, or location services are off
           system-wide). Try again, or enter a city below.
         </MessageBox>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <Pill
-          label={status === 'requesting' ? 'Checking…' : 'Use my location'}
-          onClick={handleUseLocation}
-          labelColor={colors.green}
-          disabled={status === 'requesting'}
-        />
-        <Pill label="Enter a city instead" onClick={app.onboardNext} variant="outline" fontSize={19} />
-      </div>
+      {showCityInput ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <input
+            autoFocus
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleCitySubmit();
+            }}
+            placeholder="City, e.g. Austin, TX"
+            style={{
+              borderWidth: 2,
+              borderStyle: 'solid',
+              borderColor: colors.black,
+              borderRadius: 16,
+              paddingTop: 13,
+              paddingBottom: 13,
+              paddingLeft: 16,
+              paddingRight: 16,
+              fontFamily: fonts.body,
+              fontSize: 15,
+              background: colors.white,
+              outline: 'none',
+              width: '100%',
+            }}
+          />
+          <Pill label="Continue" onClick={handleCitySubmit} labelColor={colors.green} disabled={!city.trim()} />
+          <button
+            type="button"
+            onClick={() => setShowCityInput(false)}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              fontFamily: fonts.body,
+              fontSize: 12.5,
+              fontWeight: 700,
+              textDecoration: 'underline',
+            }}
+          >
+            Use my location instead
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <Pill
+            label={status === 'requesting' ? 'Checking…' : 'Use my location'}
+            onClick={handleUseLocation}
+            labelColor={colors.green}
+            disabled={status === 'requesting'}
+          />
+          <Pill label="Enter a city instead" onClick={() => setShowCityInput(true)} variant="outline" fontSize={19} />
+        </div>
+      )}
     </>
   );
 }

@@ -108,7 +108,7 @@ function mapPlace(p: GooglePlace, origin: Coords): Restaurant {
   };
 }
 
-export async function searchVeganVegetarianNearby(origin: Coords): Promise<Restaurant[]> {
+async function fetchAllPlaces(body: Record<string, unknown>): Promise<GooglePlace[]> {
   if (!API_KEY) throw new PlacesApiError('No Google Places API key configured');
 
   const places: GooglePlace[] = [];
@@ -123,19 +123,16 @@ export async function searchVeganVegetarianNearby(origin: Coords): Promise<Resta
         'X-Goog-FieldMask': SEARCH_FIELD_MASK,
       },
       body: JSON.stringify({
-        textQuery: 'vegan or vegetarian restaurants',
-        locationBias: {
-          circle: { center: { latitude: origin.lat, longitude: origin.lng }, radius: 8000 },
-        },
+        ...body,
         maxResultCount: RESULTS_PAGE_SIZE,
         ...(pageToken ? { pageToken } : {}),
       }),
     });
 
     if (!res.ok) {
-      const body = await res.text().catch(() => '');
+      const errBody = await res.text().catch(() => '');
       if (places.length > 0) break; // keep what we already have rather than failing outright
-      throw new PlacesApiError(`Places API ${res.status}: ${body.slice(0, 200)}`);
+      throw new PlacesApiError(`Places API ${res.status}: ${errBody.slice(0, 200)}`);
     }
 
     const data = (await res.json()) as { places?: GooglePlace[]; nextPageToken?: string };
@@ -143,5 +140,35 @@ export async function searchVeganVegetarianNearby(origin: Coords): Promise<Resta
     pageToken = data.nextPageToken;
   } while (pageToken && places.length < MAX_RESULTS);
 
+  return places;
+}
+
+export async function searchVeganVegetarianNearby(origin: Coords): Promise<Restaurant[]> {
+  const places = await fetchAllPlaces({
+    textQuery: 'vegan or vegetarian restaurants',
+    locationBias: {
+      circle: { center: { latitude: origin.lat, longitude: origin.lng }, radius: 8000 },
+    },
+  });
   return places.map((p) => mapPlace(p, origin));
+}
+
+/**
+ * Google's text search resolves a plain city name in the query itself — no geocoding
+ * step needed. There's no real device position to measure distance from here, so each
+ * result's distance is instead measured from the centroid of the results themselves
+ * (a "distance from the middle of the pack" proxy, not a true from-you distance).
+ */
+export async function searchVeganVegetarianInCity(city: string): Promise<Restaurant[]> {
+  const places = await fetchAllPlaces({ textQuery: `vegan or vegetarian restaurants in ${city}` });
+
+  const withCoords = places.filter((p) => p.location);
+  const centroid: Coords = withCoords.length
+    ? {
+        lat: withCoords.reduce((sum, p) => sum + p.location!.latitude, 0) / withCoords.length,
+        lng: withCoords.reduce((sum, p) => sum + p.location!.longitude, 0) / withCoords.length,
+      }
+    : { lat: 0, lng: 0 };
+
+  return places.map((p) => mapPlace(p, centroid));
 }

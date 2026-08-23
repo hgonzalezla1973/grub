@@ -1,4 +1,3 @@
-import { haversineMiles, type Coords } from '../utils/geo';
 import type { DietCategory, Restaurant } from '../data/restaurants';
 
 /**
@@ -20,7 +19,8 @@ interface YelpBusiness {
   coordinates?: { latitude: number; longitude: number };
   price?: string;
   phone?: string;
-  distance?: number; // meters, computed by Yelp when lat/lng are supplied
+  distance?: number; // meters — Yelp computes this from whatever location it resolved
+  // (lat/lng or a city string), so it's present either way.
   location?: { display_address?: string[] };
   is_closed?: boolean;
 }
@@ -43,17 +43,14 @@ function cuisineFrom(categories: { alias: string; title: string }[]): string {
   return (nonDiet ?? categories[0])?.title ?? 'Restaurant';
 }
 
-function mapBusiness(b: YelpBusiness, origin: Coords): Restaurant {
-  const lat = b.coordinates?.latitude ?? origin.lat;
-  const lng = b.coordinates?.longitude ?? origin.lng;
+function mapBusiness(b: YelpBusiness): Restaurant {
   const categories = b.categories ?? [];
-  const distanceMi = b.distance != null ? b.distance / 1609.344 : haversineMiles(origin, { lat, lng });
 
   return {
     id: `yelp-${b.id}`,
     name: b.name,
     cuisine: cuisineFrom(categories),
-    distance: Math.round(distanceMi * 10) / 10,
+    distance: Math.round(((b.distance ?? 0) / 1609.344) * 10) / 10,
     address: b.location?.display_address?.join(', ') ?? 'Address unavailable',
     isFastFood: categories.some((c) => c.alias === 'hotdogs' || c.alias === 'fastfood'),
     dietCategory: inferDietCategory(categories),
@@ -66,15 +63,15 @@ function mapBusiness(b: YelpBusiness, origin: Coords): Restaurant {
     menu: [],
     note: "This listing comes from Yelp — dish-level vegan/vegetarian details aren't available yet.",
     reviews: [],
-    lat,
-    lng,
+    lat: b.coordinates?.latitude,
+    lng: b.coordinates?.longitude,
     photoUrl: b.image_url,
     source: 'yelp',
   };
 }
 
-export async function searchVeganVegetarianNearby(origin: Coords): Promise<Restaurant[]> {
-  const url = `/api/yelp/search?lat=${origin.lat}&lng=${origin.lng}`;
+async function fetchYelp(params: Record<string, string>): Promise<Restaurant[]> {
+  const url = `/api/yelp/search?${new URLSearchParams(params)}`;
   const res = await fetch(url);
 
   if (!res.ok) {
@@ -83,5 +80,14 @@ export async function searchVeganVegetarianNearby(origin: Coords): Promise<Resta
   }
 
   const data = (await res.json()) as { businesses?: YelpBusiness[] };
-  return (data.businesses ?? []).filter((b) => !b.is_closed).map((b) => mapBusiness(b, origin));
+  return (data.businesses ?? []).filter((b) => !b.is_closed).map(mapBusiness);
+}
+
+export function searchVeganVegetarianNearby(origin: { lat: number; lng: number }): Promise<Restaurant[]> {
+  return fetchYelp({ lat: String(origin.lat), lng: String(origin.lng) });
+}
+
+/** Yelp resolves a plain city/address string server-side — no geocoding step needed. */
+export function searchVeganVegetarianInCity(city: string): Promise<Restaurant[]> {
+  return fetchYelp({ city });
 }
