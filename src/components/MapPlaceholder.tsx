@@ -1,8 +1,6 @@
-import React from 'react';
-import { Pressable, Text, View } from 'react-native';
-import Svg, { Defs, Line, Pattern, Rect } from 'react-native-svg';
+import { useId } from 'react';
 import { colors, fonts } from '../theme/tokens';
-import { isGem, Restaurant } from '../data/restaurants';
+import { isGem, type Restaurant } from '../data/restaurants';
 import { useApp } from '../state/AppState';
 import { hashBearing } from '../utils/geo';
 import { PeekCard } from './PeekCard';
@@ -29,71 +27,87 @@ export function MapPlaceholder({ restaurants }: { restaurants: Restaurant[] }) {
   const app = useApp();
   const hasGeo = app.hasLiveLocation;
   const maxDistance = Math.max(1, ...restaurants.map((r) => r.distance));
+  const gridId = `map-grid-${useId()}`;
 
   return (
-    <View
+    <div
       style={{
         flex: 1,
+        position: 'relative',
         borderWidth: 2,
+        borderStyle: 'solid',
         borderColor: colors.black,
         borderRadius: 22,
         overflow: 'hidden',
-        backgroundColor: colors.mapSurface,
+        background: colors.mapSurface,
       }}
     >
-      <Svg width="100%" height="100%" style={{ position: 'absolute' }}>
-        <Defs>
-          <Pattern id="mapGrid" patternUnits="userSpaceOnUse" width={28} height={28}>
-            <Rect width={28} height={28} fill={colors.mapSurface} />
-            <Line x1={0} y1={0} x2={28} y2={0} stroke="rgba(0,0,0,0.08)" strokeWidth={1} />
-            <Line x1={0} y1={0} x2={0} y2={28} stroke="rgba(0,0,0,0.08)" strokeWidth={1} />
-          </Pattern>
-        </Defs>
-        <Rect width="100%" height="100%" fill="url(#mapGrid)" />
-      </Svg>
+      <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0 }}>
+        <defs>
+          <pattern id={gridId} patternUnits="userSpaceOnUse" width={28} height={28}>
+            <rect width={28} height={28} fill={colors.mapSurface} />
+            <line x1={0} y1={0} x2={28} y2={0} stroke="rgba(0,0,0,0.08)" strokeWidth={1} />
+            <line x1={0} y1={0} x2={0} y2={28} stroke="rgba(0,0,0,0.08)" strokeWidth={1} />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill={`url(#${gridId})`} />
+      </svg>
 
       {hasGeo && (
-        <View
+        <div
           style={{
             position: 'absolute',
             left: '50%',
             top: '50%',
             marginLeft: -9,
             marginTop: -9,
+            display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
+            pointerEvents: 'none',
           }}
-          pointerEvents="none"
         >
-          <View
+          <div
             style={{
               width: 18,
               height: 18,
               borderRadius: 9,
-              backgroundColor: colors.blue,
+              background: colors.blue,
               borderWidth: 2,
+              borderStyle: 'solid',
               borderColor: colors.black,
             }}
           />
-          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 10, fontWeight: '700', marginTop: 2 }}>You</Text>
-        </View>
+          <span style={{ fontFamily: fonts.body, fontSize: 10, fontWeight: 700, marginTop: 2 }}>You</span>
+        </div>
       )}
 
       {restaurants.map((r, i) => {
         const { left, top } = pinPosition(r, i, maxDistance, hasGeo);
         const selected = app.peekId === r.id;
         return (
-          <Pressable
+          <button
+            type="button"
             key={r.id}
-            onPress={() => app.setPeek(r.id)}
-            style={{ position: 'absolute', left: left as any, top: top as any }}
-            hitSlop={10}
+            onClick={() => app.setPeek(r.id)}
+            style={{
+              position: 'absolute',
+              left,
+              top,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 6,
+              lineHeight: 1,
+              transform: 'translate(-50%, -100%)',
+            }}
           >
-            <Text style={{ fontSize: selected ? 34 : 27 }}>{isGem(r) ? '💎' : '📍'}</Text>
-          </Pressable>
+            <span style={{ fontSize: selected ? 34 : 27 }}>{isGem(r) ? '💎' : '📍'}</span>
+          </button>
         );
       })}
 
       {app.peekRestaurant && <PeekCard restaurant={app.peekRestaurant} />}
-    </View>
+    </div>
   );
 }

@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
-import { Linking, Pressable, Text, View } from 'react-native';
-import * as Location from 'expo-location';
+import { useState, type ReactNode } from 'react';
 import { colors, fonts } from '../theme/tokens';
 import { Pill } from '../components/Pill';
-import { DIET_LABEL, DietCategory } from '../data/restaurants';
+import { DIET_LABEL, type DietCategory } from '../data/restaurants';
 import { useApp } from '../state/AppState';
 
 const STEP_BG: Record<1 | 2 | 3, string> = { 1: colors.green, 2: colors.coral, 3: colors.blue };
@@ -19,42 +17,65 @@ export function OnboardingScreen() {
   const bg = STEP_BG[app.onboardStep];
 
   return (
-    <View style={{ flex: 1, backgroundColor: bg, paddingHorizontal: 20, paddingTop: 22, paddingBottom: 28 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <View style={{ flexDirection: 'row', gap: 6 }}>
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        background: bg,
+        paddingLeft: 20,
+        paddingRight: 20,
+        paddingTop: 22,
+        paddingBottom: 28,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <div style={{ display: 'flex', gap: 6 }}>
           {[1, 2, 3].map((n) => (
-            <View
+            <div
               key={n}
               style={{
                 width: n === app.onboardStep ? 26 : 9,
                 height: 9,
                 borderRadius: 100,
                 borderWidth: 2,
+                borderStyle: 'solid',
                 borderColor: colors.black,
-                backgroundColor: n <= app.onboardStep ? colors.black : 'transparent',
+                background: n <= app.onboardStep ? colors.black : 'transparent',
               }}
             />
           ))}
-        </View>
+        </div>
         {app.onboardStep < 3 && (
-          <Pressable onPress={app.goHome}>
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, fontWeight: '700', textDecorationLine: 'underline' }}>
-              Skip
-            </Text>
-          </Pressable>
+          <button
+            type="button"
+            onClick={app.goHome}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              fontFamily: fonts.body,
+              fontSize: 12.5,
+              fontWeight: 700,
+              textDecoration: 'underline',
+            }}
+          >
+            Skip
+          </button>
         )}
-      </View>
+      </div>
 
       {app.onboardStep === 1 && <StepOne />}
       {app.onboardStep === 2 && <StepTwo />}
       {app.onboardStep === 3 && <StepThree />}
-    </View>
+    </div>
   );
 }
 
 type LocationStatus = 'idle' | 'requesting' | 'denied' | 'blocked' | 'unavailable';
 
-/** A hung native permission/GPS call must never leave the button stuck on "Checking…" forever. */
+/** A hung permission/GPS call must never leave the button stuck on "Checking…" forever. */
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error(`timed out after ${ms}ms`)), ms);
@@ -71,152 +92,143 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   });
 }
 
+function getCurrentPosition(options: PositionOptions): Promise<GeolocationPosition> {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject, options);
+  });
+}
+
 function StepOne() {
   const app = useApp();
   const [status, setStatus] = useState<LocationStatus>('idle');
 
   const handleUseLocation = async () => {
     setStatus('requesting');
+
+    if (!('geolocation' in navigator)) {
+      setStatus('unavailable');
+      return;
+    }
+
     try {
-      const { status: permission, canAskAgain } = await withTimeout(
-        Location.requestForegroundPermissionsAsync(),
-        15000
-      );
-      if (permission !== 'granted') {
-        // iOS/Android only show the system prompt once per app. If a prior denial (in this
-        // app or, on Expo Go, ANY project run through it) already recorded "don't ask again",
-        // this resolves instantly with no dialog shown at all — so "denied" alone would be
-        // misleading here. canAskAgain tells us whether a re-prompt is even possible.
-        setStatus(canAskAgain ? 'denied' : 'blocked');
-        return;
+      // Check whether this was already permanently denied at the browser level — if so,
+      // getCurrentPosition will fail instantly with no browser prompt at all, which needs
+      // different guidance (go change it in the browser's site settings) than a fresh "no".
+      if ('permissions' in navigator) {
+        try {
+          const status = await navigator.permissions.query({ name: 'geolocation' as PermissionName });
+          if (status.state === 'denied') {
+            setStatus('blocked');
+            return;
+          }
+        } catch {
+          // Permissions API not fully supported (e.g. Safari) — fall through and just try.
+        }
       }
-      const position = await withTimeout(
-        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
-        15000
-      );
+
+      const position = await withTimeout(getCurrentPosition({ enableHighAccuracy: false, timeout: 15000 }), 15000);
       const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
       app.setUserLocation(coords);
       app.loadNearbyRestaurants(coords);
       app.onboardNext();
     } catch (e) {
-      console.warn('[location] failed to get current position', e);
-      setStatus('unavailable');
+      const code = (e as GeolocationPositionError)?.code;
+      if (code === 1) {
+        setStatus('denied');
+      } else {
+        console.warn('[location] failed to get current position', e);
+        setStatus('unavailable');
+      }
     }
   };
 
   return (
     <>
-      <View style={{ flex: 1, justifyContent: 'center' }}>
-        <Text style={{ fontFamily: fonts.display, fontSize: 104, fontWeight: '900', lineHeight: 104, textTransform: 'uppercase', marginBottom: 14 }}>
-          Grub
-        </Text>
-        <Text style={{ fontFamily: fonts.body, fontSize: 16, opacity: 0.78, lineHeight: 22.4, maxWidth: 290, marginBottom: 24 }}>
-          Find the closest place you can actually order from, whether you're fully vegan or just skipping the meat.
-        </Text>
-        <View
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div
           style={{
-            backgroundColor: colors.white,
+            fontFamily: fonts.display,
+            fontSize: 104,
+            fontWeight: 900,
+            lineHeight: 1,
+            textTransform: 'uppercase',
+            marginBottom: 14,
+          }}
+        >
+          Grub
+        </div>
+        <div style={{ fontFamily: fonts.body, fontSize: 16, opacity: 0.78, lineHeight: 1.4, maxWidth: 290, marginBottom: 24 }}>
+          Find the closest place you can actually order from, whether you're fully vegan or just skipping the meat.
+        </div>
+        <div
+          style={{
+            background: colors.white,
             borderWidth: 2,
+            borderStyle: 'solid',
             borderColor: colors.black,
             borderRadius: 20,
             padding: 16,
-            shadowColor: colors.black,
-            shadowOffset: { width: 5, height: 5 },
-            shadowOpacity: 1,
-            shadowRadius: 0,
+            boxShadow: `5px 5px 0 ${colors.black}`,
           }}
         >
-          <Text style={{ fontFamily: fonts.display800, fontSize: 26, fontWeight: '800', textTransform: 'uppercase', lineHeight: 28.6 }}>
+          <div style={{ fontFamily: fonts.display, fontSize: 26, fontWeight: 800, textTransform: 'uppercase', lineHeight: 1.1 }}>
             Where are you?
-          </Text>
-          <Text style={{ fontFamily: fonts.body, fontSize: 13.5, opacity: 0.75, marginTop: 5, lineHeight: 18.9 }}>
+          </div>
+          <div style={{ fontFamily: fonts.body, fontSize: 13.5, opacity: 0.75, marginTop: 5, lineHeight: 1.4 }}>
             We use your location to sort spots by how far you'd have to walk or drive. Nothing is shared.
-          </Text>
-        </View>
-      </View>
+          </div>
+        </div>
+      </div>
 
       {status === 'denied' && (
-        <View
-          style={{
-            backgroundColor: 'rgba(0,0,0,0.08)',
-            borderWidth: 2,
-            borderColor: colors.black,
-            borderRadius: 14,
-            padding: 12,
-            marginBottom: 10,
-          }}
-        >
-          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, fontWeight: '700' }}>Location access is off</Text>
-          <Text style={{ fontFamily: fonts.body, fontSize: 12.5, opacity: 0.8, marginTop: 2, lineHeight: 17 }}>
-            Turn it on in Settings any time, or just enter a city below to keep going.
-          </Text>
-        </View>
+        <MessageBox title="Location access is off">
+          Turn it on any time via your browser's site settings, or just enter a city below to keep going.
+        </MessageBox>
       )}
 
       {status === 'blocked' && (
-        <View
-          style={{
-            backgroundColor: 'rgba(0,0,0,0.08)',
-            borderWidth: 2,
-            borderColor: colors.black,
-            borderRadius: 14,
-            padding: 12,
-            marginBottom: 10,
-          }}
-        >
-          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, fontWeight: '700' }}>
-            Location was already turned off
-          </Text>
-          <Text style={{ fontFamily: fonts.body, fontSize: 12.5, opacity: 0.8, marginTop: 2, marginBottom: 8, lineHeight: 17 }}>
-            iOS only asks once — you (or a previous run) said no, so it won't prompt again here. Enable it in
-            Settings, or just enter a city below.
-          </Text>
-          <Pressable
-            onPress={() => Linking.openSettings()}
-            style={{
-              alignSelf: 'flex-start',
-              backgroundColor: colors.black,
-              borderRadius: 100,
-              paddingVertical: 8,
-              paddingHorizontal: 14,
-            }}
-          >
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, fontWeight: '700', color: colors.white }}>
-              Open Settings
-            </Text>
-          </Pressable>
-        </View>
+        <MessageBox title="Location was already turned off">
+          Your browser already remembers a "no" for this site, so it won't prompt again here. Click the padlock/site-info
+          icon next to the address bar to re-enable location, or just enter a city below.
+        </MessageBox>
       )}
 
       {status === 'unavailable' && (
-        <View
-          style={{
-            backgroundColor: 'rgba(0,0,0,0.08)',
-            borderWidth: 2,
-            borderColor: colors.black,
-            borderRadius: 14,
-            padding: 12,
-            marginBottom: 10,
-          }}
-        >
-          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, fontWeight: '700' }}>Couldn't get a location fix</Text>
-          <Text style={{ fontFamily: fonts.body, fontSize: 12.5, opacity: 0.8, marginTop: 2, lineHeight: 17 }}>
-            Permission was granted, but we couldn't read a position (weak signal, or Location Services is off system-wide).
-            Try again, or enter a city below.
-          </Text>
-        </View>
+        <MessageBox title="Couldn't get a location fix">
+          Permission was granted, but we couldn't read a position (weak signal, or location services are off
+          system-wide). Try again, or enter a city below.
+        </MessageBox>
       )}
 
-      <View style={{ gap: 10 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <Pill
           label={status === 'requesting' ? 'Checking…' : 'Use my location'}
-          onPress={handleUseLocation}
+          onClick={handleUseLocation}
           labelColor={colors.green}
           disabled={status === 'requesting'}
         />
-        <Pill label="Enter a city instead" onPress={app.onboardNext} variant="outline" fontSize={19} />
-      </View>
+        <Pill label="Enter a city instead" onClick={app.onboardNext} variant="outline" fontSize={19} />
+      </div>
     </>
+  );
+}
+
+function MessageBox({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div
+      style={{
+        background: 'rgba(0,0,0,0.08)',
+        borderWidth: 2,
+        borderStyle: 'solid',
+        borderColor: colors.black,
+        borderRadius: 14,
+        padding: 12,
+        marginBottom: 10,
+      }}
+    >
+      <div style={{ fontFamily: fonts.body, fontSize: 13, fontWeight: 700 }}>{title}</div>
+      <div style={{ fontFamily: fonts.body, fontSize: 12.5, opacity: 0.8, marginTop: 2, lineHeight: 1.35 }}>{children}</div>
+    </div>
   );
 }
 
@@ -225,63 +237,76 @@ function StepTwo() {
   const hasAny = app.diet.length > 0;
   return (
     <>
-      <View style={{ flex: 1, justifyContent: 'center' }}>
-        <Text style={{ fontFamily: fonts.display, fontSize: 52, fontWeight: '900', lineHeight: 52, textTransform: 'uppercase', marginBottom: 8 }}>
-          How do{'\n'}you eat?
-        </Text>
-        <Text style={{ fontFamily: fonts.body, fontSize: 15, opacity: 0.78, lineHeight: 21, marginBottom: 20 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div
+          style={{
+            fontFamily: fonts.display,
+            fontSize: 52,
+            fontWeight: 900,
+            lineHeight: 1,
+            textTransform: 'uppercase',
+            marginBottom: 8,
+          }}
+        >
+          How do
+          <br />
+          you eat?
+        </div>
+        <div style={{ fontFamily: fonts.body, fontSize: 15, opacity: 0.78, lineHeight: 1.4, marginBottom: 20 }}>
           Pick anything that applies. This becomes your default filter — change it any time.
-        </Text>
-        <View style={{ gap: 10 }}>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {DIET_CARDS.map((d) => {
             const on = app.diet.includes(d.key);
             return (
-              <Pressable
+              <button
+                type="button"
                 key={d.key}
-                onPress={() => app.toggleDiet(d.key)}
+                onClick={() => app.toggleDiet(d.key)}
                 style={{
-                  backgroundColor: on ? colors.black : colors.white,
+                  textAlign: 'left',
+                  background: on ? colors.black : colors.white,
                   borderWidth: 2,
+                  borderStyle: 'solid',
                   borderColor: colors.black,
                   borderRadius: 20,
                   padding: 14,
-                  paddingHorizontal: 16,
-                  shadowColor: colors.black,
-                  shadowOffset: { width: 4, height: 4 },
-                  shadowOpacity: 1,
-                  shadowRadius: 0,
+                  paddingLeft: 16,
+                  paddingRight: 16,
+                  boxShadow: `4px 4px 0 ${colors.black}`,
+                  cursor: 'pointer',
                 }}
               >
-                <Text
+                <div
                   style={{
-                    fontFamily: fonts.display800,
+                    fontFamily: fonts.display,
                     fontSize: 26,
-                    fontWeight: '800',
+                    fontWeight: 800,
                     textTransform: 'uppercase',
-                    lineHeight: 28.6,
+                    lineHeight: 1.1,
                     color: on ? colors.white : colors.black,
                   }}
                 >
                   {d.label}
-                </Text>
-                <Text
+                </div>
+                <div
                   style={{
                     fontFamily: fonts.body,
                     fontSize: 13,
                     opacity: 0.75,
                     marginTop: 4,
-                    lineHeight: 17.5,
+                    lineHeight: 1.35,
                     color: on ? colors.white : colors.black,
                   }}
                 >
                   {d.detail}
-                </Text>
-              </Pressable>
+                </div>
+              </button>
             );
           })}
-        </View>
-      </View>
-      <Pill label={hasAny ? 'Looks right' : 'Show me everything'} onPress={app.onboardNext} labelColor={colors.coral} />
+        </div>
+      </div>
+      <Pill label={hasAny ? 'Looks right' : 'Show me everything'} onClick={app.onboardNext} labelColor={colors.coral} />
     </>
   );
 }
@@ -297,53 +322,75 @@ function StepThree() {
 
   return (
     <>
-      <View style={{ flex: 1, justifyContent: 'center', minHeight: 0 }}>
-        <Text style={{ fontFamily: fonts.display, fontSize: 52, fontWeight: '900', lineHeight: 52, textTransform: 'uppercase', marginBottom: 6 }}>
-          {app.filteredRestaurants.length} spots{'\n'}are ready
-        </Text>
-        <Text style={{ fontFamily: fonts.body, fontSize: 15, opacity: 0.78, lineHeight: 21, marginBottom: 18 }}>{line}</Text>
-        <View style={{ gap: 10 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', minHeight: 0 }}>
+        <div
+          style={{
+            fontFamily: fonts.display,
+            fontSize: 52,
+            fontWeight: 900,
+            lineHeight: 1,
+            textTransform: 'uppercase',
+            marginBottom: 6,
+          }}
+        >
+          {app.filteredRestaurants.length} spots
+          <br />
+          are ready
+        </div>
+        <div style={{ fontFamily: fonts.body, fontSize: 15, opacity: 0.78, lineHeight: 1.4, marginBottom: 18 }}>{line}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {teaser.map((r) => (
-            <View
+            <div
               key={r.id}
               style={{
-                backgroundColor: colors.white,
+                background: colors.white,
                 borderWidth: 2,
+                borderStyle: 'solid',
                 borderColor: colors.black,
                 borderRadius: 18,
                 padding: 11,
-                flexDirection: 'row',
+                display: 'flex',
                 gap: 11,
                 alignItems: 'center',
-                shadowColor: colors.black,
-                shadowOffset: { width: 4, height: 4 },
-                shadowOpacity: 1,
-                shadowRadius: 0,
+                boxShadow: `4px 4px 0 ${colors.black}`,
               }}
             >
-              <View
+              <div
                 style={{
                   width: 48,
                   height: 48,
+                  flexShrink: 0,
                   borderRadius: 12,
                   borderWidth: 2,
+                  borderStyle: 'solid',
                   borderColor: colors.black,
-                  backgroundColor: '#eee',
+                  background: '#eee',
                 }}
               />
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ fontFamily: fonts.display800, fontSize: 23, fontWeight: '800', textTransform: 'uppercase', lineHeight: 24.8 }} numberOfLines={1}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    fontFamily: fonts.display,
+                    fontSize: 23,
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    lineHeight: 1.08,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   {r.name}
-                </Text>
-                <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, fontWeight: '600', opacity: 0.75, marginTop: 2 }}>
+                </div>
+                <div style={{ fontFamily: fonts.body, fontSize: 12, fontWeight: 600, opacity: 0.75, marginTop: 2 }}>
                   ★ {r.rating} · {r.distance} mi · {DIET_LABEL[r.dietCategory]}
-                </Text>
-              </View>
-            </View>
+                </div>
+              </div>
+            </div>
           ))}
-        </View>
-      </View>
-      <Pill label="Start exploring" onPress={app.startQuiz} labelColor={colors.blue} />
+        </div>
+      </div>
+      <Pill label="Start exploring" onClick={app.startQuiz} labelColor={colors.blue} />
     </>
   );
 }

@@ -1,6 +1,3 @@
-import React from 'react';
-import { StatusBar, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts } from './theme/tokens';
 import { useApp } from './state/AppState';
 import { BottomNav } from './components/BottomNav';
@@ -26,37 +23,62 @@ export function AppShell() {
   const title = app.screen === 'detail' ? app.selectedRestaurant?.name ?? '' : TITLES[app.screen];
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.cream }} edges={['top', 'bottom']}>
-      <StatusBar barStyle="dark-content" />
+    <div
+      style={{
+        width: '100%',
+        maxWidth: 480,
+        minHeight: '100dvh',
+        display: 'flex',
+        flexDirection: 'column',
+        background: colors.cream,
+        overflow: 'hidden',
+      }}
+    >
       {showTitleBar && (
-        <View
+        <div
           style={{
-            paddingHorizontal: 20,
-            paddingVertical: 10,
+            paddingLeft: 20,
+            paddingRight: 20,
+            paddingTop: `calc(10px + env(safe-area-inset-top))`,
+            paddingBottom: 10,
             borderBottomWidth: app.screen === 'detail' ? 0 : 2,
+            borderBottomStyle: 'solid',
             borderColor: colors.black,
-            backgroundColor: colors.cream,
+            background: colors.cream,
+            flexShrink: 0,
           }}
         >
-          <Text
-            style={{ fontFamily: fonts.display800, fontSize: 15, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.4 }}
-            numberOfLines={1}
+          <div
+            style={{
+              fontFamily: fonts.display,
+              fontSize: 15,
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: 0.4,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
           >
             {title}
-          </Text>
-        </View>
+          </div>
+        </div>
       )}
 
-      <View style={{ flex: 1 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         {app.screen === 'onboarding' && <OnboardingScreen />}
         {app.screen === 'home' && <HomeScreen />}
         {app.screen === 'results' && <ExploreScreen />}
         {app.screen === 'detail' && <DetailScreen />}
         {app.screen === 'saved' && <SavedScreen />}
         {app.screen === 'profile' && <ProfileScreen />}
-      </View>
+      </div>
 
-      {showNav && <BottomNav />}
-    </SafeAreaView>
+      {showNav && (
+        <div style={{ paddingBottom: 'env(safe-area-inset-bottom)', flexShrink: 0 }}>
+          <BottomNav />
+        </div>
+      )}
+    </div>
   );
 }

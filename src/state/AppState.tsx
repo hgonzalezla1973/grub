@@ -1,12 +1,12 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 import {
-  DietCategory,
   DISTANCE_FILTERS,
   distanceBucket,
-  Restaurant,
   RESTAURANTS,
+  type DietCategory,
+  type Restaurant,
 } from '../data/restaurants';
-import { Coords, destinationPoint, haversineMiles, hashBearing } from '../utils/geo';
+import { destinationPoint, haversineMiles, hashBearing, type Coords } from '../utils/geo';
 import { hasApiKey, searchVeganVegetarianNearby } from '../services/googlePlaces';
 
 export type RestaurantsStatus = 'idle' | 'loading' | 'ready' | 'error' | 'no-api-key';
@@ -98,7 +98,7 @@ interface AppContextValue extends AppStateShape {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
+export function AppProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppStateShape>(initialState);
 
   const patch = useCallback((p: Partial<AppStateShape>) => {

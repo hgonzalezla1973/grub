@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 export const colors = {
   cream: '#FDF2EC',
   black: '#000000',
@@ -23,12 +25,8 @@ export const cardColors = [
 ];
 
 export const fonts = {
-  display: 'BigShouldersDisplay_900Black',
-  display800: 'BigShouldersDisplay_800ExtraBold',
-  body: 'JosefinSans_400Regular',
-  bodyMedium: 'JosefinSans_500Medium',
-  bodySemiBold: 'JosefinSans_600SemiBold',
-  bodyBold: 'JosefinSans_700Bold',
+  display: "'Big Shoulders Display', sans-serif",
+  body: "'Josefin Sans', system-ui, sans-serif",
 };
 
 export const radii = {
@@ -40,20 +38,18 @@ export const radii = {
   sheet: 26,
 };
 
-export const shadow = (offset: 3 | 4 | 5 = 4) => ({
-  shadowColor: colors.black,
-  shadowOffset: { width: offset, height: offset },
-  shadowOpacity: 1,
-  shadowRadius: 0,
-  elevation: offset,
+export const shadow = (offset: 3 | 4 | 5 = 4): CSSProperties => ({
+  boxShadow: `${offset}px ${offset}px 0 ${colors.black}`,
 });
 
-export const border = {
+export const border: CSSProperties = {
   borderWidth: 2,
+  borderStyle: 'solid',
   borderColor: colors.black,
 };
 
-export const borderThin = {
+export const borderThin: CSSProperties = {
   borderWidth: 1.5,
+  borderStyle: 'solid',
   borderColor: colors.black,
 };

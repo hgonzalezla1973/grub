@@ -1,5 +1,3 @@
-import React from 'react';
-import { View } from 'react-native';
 import { colors } from '../theme/tokens';
 
 interface Props {
@@ -11,17 +9,18 @@ interface Props {
 export function ProgressBar({ progress, height = 16, trackColor = colors.white }: Props) {
   const pct = Math.max(0, Math.min(1, progress));
   return (
-    <View
+    <div
       style={{
         height,
         borderRadius: 100,
         borderWidth: 2,
+        borderStyle: 'solid',
         borderColor: colors.black,
-        backgroundColor: trackColor,
+        background: trackColor,
         overflow: 'hidden',
       }}
     >
-      <View style={{ height: '100%', width: `${pct * 100}%`, backgroundColor: colors.black }} />
-    </View>
+      <div style={{ height: '100%', width: `${pct * 100}%`, background: colors.black }} />
+    </div>
   );
 }

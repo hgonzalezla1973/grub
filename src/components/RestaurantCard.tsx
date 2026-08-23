@@ -1,8 +1,6 @@
-import React from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { colors, fonts } from '../theme/tokens';
-import { cardColors } from '../theme/tokens';
-import { DIET_LABEL, priceLabel, Restaurant } from '../data/restaurants';
+import { type CSSProperties } from 'react';
+import { colors, cardColors, fonts } from '../theme/tokens';
+import { DIET_LABEL, priceLabel, type Restaurant } from '../data/restaurants';
 import { hashBearing } from '../utils/geo';
 import { RestaurantPhoto } from './RestaurantPhoto';
 import { FavoriteButton } from './FavoriteButton';
@@ -17,7 +15,7 @@ export function colorForRestaurant(r: Restaurant) {
 
 interface Props {
   restaurant: Restaurant;
-  style?: any;
+  style?: CSSProperties;
 }
 
 export function RestaurantCard({ restaurant: r, style }: Props) {
@@ -25,43 +23,74 @@ export function RestaurantCard({ restaurant: r, style }: Props) {
   const favorite = app.favorites.includes(r.id);
 
   return (
-    <Pressable
-      onPress={() => app.openDetail(r.id)}
-      style={[
-        {
-          backgroundColor: colorForRestaurant(r),
-          borderWidth: 2,
-          borderColor: colors.black,
-          borderRadius: 20,
-          padding: 10,
-          shadowColor: colors.black,
-          shadowOffset: { width: 4, height: 4 },
-          shadowOpacity: 1,
-          shadowRadius: 0,
-        },
-        style,
-      ]}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => app.openDetail(r.id)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          app.openDetail(r.id);
+        }
+      }}
+      style={{
+        textAlign: 'left',
+        background: colorForRestaurant(r),
+        borderWidth: 2,
+        borderStyle: 'solid',
+        borderColor: colors.black,
+        borderRadius: 20,
+        padding: 10,
+        boxShadow: `4px 4px 0 ${colors.black}`,
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column',
+        ...style,
+      }}
     >
-      <View style={{ position: 'relative', marginBottom: 8 }}>
+      <div style={{ position: 'relative', marginBottom: 8 }}>
         <RestaurantPhoto restaurant={r} height={88} radius={14} onColor />
         <FavoriteButton
           active={favorite}
-          onPress={() => app.toggleFavorite(r.id)}
+          onClick={() => app.toggleFavorite(r.id)}
           size={26}
           style={{ position: 'absolute', top: 6, right: 6 }}
         />
-      </View>
-      <Text style={{ fontFamily: fonts.display800, fontSize: 23, fontWeight: '800', textTransform: 'uppercase', lineHeight: 24.8 }} numberOfLines={1}>
+      </div>
+      <div
+        style={{
+          fontFamily: fonts.display,
+          fontSize: 23,
+          fontWeight: 800,
+          textTransform: 'uppercase',
+          lineHeight: 1.08,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
         {r.name}
-      </Text>
-      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, fontWeight: '600', opacity: 0.75, marginTop: 2, marginBottom: 8 }} numberOfLines={1}>
+      </div>
+      <div
+        style={{
+          fontFamily: fonts.body,
+          fontSize: 12.5,
+          fontWeight: 600,
+          opacity: 0.75,
+          marginTop: 2,
+          marginBottom: 8,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
         {r.cuisine} · {priceLabel(r.price)}
-      </Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
         <Badge label={`★ ${r.rating}`} />
         <Badge label={`${r.distance} mi`} />
         <Badge label={DIET_LABEL[r.dietCategory]} filled />
-      </View>
-    </Pressable>
+      </div>
+    </div>
   );
 }

@@ -1,5 +1,3 @@
-import React from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { colors, fonts } from '../theme/tokens';
 import { Pill } from '../components/Pill';
 import { SegmentedControl } from '../components/Chip';
@@ -10,38 +8,70 @@ export function HomeScreen() {
   const locationLabel = app.mode === 'trip' ? app.destination || 'Planning a trip' : 'Current location';
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.cream }}
-      contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 22, paddingBottom: 28 }}
+    <div
+      style={{
+        flex: 1,
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        background: colors.cream,
+        padding: 20,
+        paddingTop: 22,
+        paddingBottom: 28,
+      }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6 }} numberOfLines={1}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        <span
+          style={{
+            fontFamily: fonts.body,
+            fontSize: 12,
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: 0.6,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           📍 {locationLabel}
-        </Text>
-        <Pressable
-          onPress={app.goProfile}
+        </span>
+        <button
+          type="button"
+          onClick={app.goProfile}
           style={{
             width: 40,
             height: 40,
             borderRadius: 20,
-            backgroundColor: colors.purple,
+            background: colors.purple,
             borderWidth: 2,
+            borderStyle: 'solid',
             borderColor: colors.black,
+            display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            shadowColor: colors.black,
-            shadowOffset: { width: 3, height: 3 },
-            shadowOpacity: 1,
-            shadowRadius: 0,
+            cursor: 'pointer',
+            boxShadow: `3px 3px 0 ${colors.black}`,
+            flexShrink: 0,
           }}
         >
-          <Text style={{ fontFamily: fonts.display800, fontSize: 14, fontWeight: '800' }}>MR</Text>
-        </Pressable>
-      </View>
+          <span style={{ fontFamily: fonts.display, fontSize: 14, fontWeight: 800 }}>MR</span>
+        </button>
+      </div>
 
-      <Text style={{ fontFamily: fonts.display, fontSize: 52, fontWeight: '900', lineHeight: 52, textTransform: 'uppercase', marginBottom: 18 }}>
-        What are{'\n'}you craving?
-      </Text>
+      <div
+        style={{
+          fontFamily: fonts.display,
+          fontSize: 52,
+          fontWeight: 900,
+          lineHeight: 1,
+          textTransform: 'uppercase',
+          marginBottom: 18,
+        }}
+      >
+        What are
+        <br />
+        you craving?
+      </div>
 
       <SegmentedControl
         options={[
@@ -54,73 +84,85 @@ export function HomeScreen() {
       />
 
       {app.mode === 'trip' && (
-        <TextInput
+        <input
           value={app.destination}
-          onChangeText={app.setDestination}
+          onChange={(e) => app.setDestination(e.target.value)}
           placeholder="Where are you headed?"
-          placeholderTextColor="rgba(0,0,0,0.45)"
           style={{
             borderWidth: 2,
+            borderStyle: 'solid',
             borderColor: colors.black,
             borderRadius: 16,
-            paddingVertical: 13,
-            paddingHorizontal: 16,
-            fontFamily: fonts.body,
+            paddingTop: 13,
+            paddingBottom: 13,
+            paddingLeft: 16,
+            paddingRight: 16,
             fontSize: 15,
-            backgroundColor: colors.white,
+            background: colors.white,
             marginBottom: 16,
+            outline: 'none',
           }}
         />
       )}
 
-      <View
+      <div
         style={{
-          backgroundColor: colors.coral,
+          background: colors.coral,
           borderWidth: 2,
+          borderStyle: 'solid',
           borderColor: colors.black,
           borderRadius: 22,
           padding: 20,
           marginBottom: 14,
-          shadowColor: colors.black,
-          shadowOffset: { width: 5, height: 5 },
-          shadowOpacity: 1,
-          shadowRadius: 0,
+          boxShadow: `5px 5px 0 ${colors.black}`,
         }}
       >
-        <Text style={{ fontFamily: fonts.display, fontSize: 34, fontWeight: '900', lineHeight: 34, textTransform: 'uppercase', marginBottom: 8 }}>
-          Browse{'\n'}every spot
-        </Text>
-        <Text style={{ fontFamily: fonts.body, fontSize: 15, lineHeight: 21, opacity: 0.85, marginBottom: 16 }}>
+        <div
+          style={{
+            fontFamily: fonts.display,
+            fontSize: 34,
+            fontWeight: 900,
+            lineHeight: 1,
+            textTransform: 'uppercase',
+            marginBottom: 8,
+          }}
+        >
+          Browse
+          <br />
+          every spot
+        </div>
+        <div style={{ fontFamily: fonts.body, fontSize: 15, lineHeight: 1.4, opacity: 0.85, marginBottom: 16 }}>
           Filter by 100% vegan, vegan options or vegetarian options.
-        </Text>
-        <Pill label="Find food" onPress={app.goResults} fontSize={20} style={{ width: undefined, paddingVertical: 15 }} />
-      </View>
+        </div>
+        <Pill label="Find food" onClick={app.goResults} fontSize={20} style={{ width: undefined, paddingTop: 15, paddingBottom: 15 }} />
+      </div>
 
-      <Pressable
-        onPress={app.goSaved}
+      <button
+        type="button"
+        onClick={app.goSaved}
         style={{
-          backgroundColor: colors.blue,
+          textAlign: 'left',
+          background: colors.blue,
           borderWidth: 2,
+          borderStyle: 'solid',
           borderColor: colors.black,
           borderRadius: 22,
           padding: 18,
-          flexDirection: 'row',
+          display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          shadowColor: colors.black,
-          shadowOffset: { width: 4, height: 4 },
-          shadowOpacity: 1,
-          shadowRadius: 0,
+          boxShadow: `4px 4px 0 ${colors.black}`,
+          cursor: 'pointer',
         }}
       >
-        <View>
-          <Text style={{ fontFamily: fonts.display800, fontSize: 23, fontWeight: '800', textTransform: 'uppercase' }}>
+        <div>
+          <div style={{ fontFamily: fonts.display, fontSize: 23, fontWeight: 800, textTransform: 'uppercase' }}>
             Saved · {app.favorites.length}
-          </Text>
-          <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, opacity: 0.78, marginTop: 2 }}>Works offline</Text>
-        </View>
-        <Text style={{ fontSize: 26 }}>♥</Text>
-      </Pressable>
-    </ScrollView>
+          </div>
+          <div style={{ fontFamily: fonts.body, fontSize: 13, fontWeight: 600, opacity: 0.78, marginTop: 2 }}>Works offline</div>
+        </div>
+        <span style={{ fontSize: 26 }}>♥</span>
+      </button>
+    </div>
   );
 }

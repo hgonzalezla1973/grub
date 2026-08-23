@@ -1,39 +1,41 @@
-import React from 'react';
-import { Pressable, Text } from 'react-native';
+import type { CSSProperties, MouseEvent } from 'react';
 import { colors } from '../theme/tokens';
 
 interface Props {
   active: boolean;
-  onPress: (e?: any) => void;
+  onClick: (e: MouseEvent) => void;
   size?: number;
-  style?: any;
+  style?: CSSProperties;
 }
 
-export function FavoriteButton({ active, onPress, size = 26, style }: Props) {
+export function FavoriteButton({ active, onClick, size = 26, style }: Props) {
   return (
-    <Pressable
-      onPress={(e) => {
-        e.stopPropagation?.();
-        onPress(e);
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick(e);
       }}
-      hitSlop={8}
-      style={[
-        {
-          width: size,
-          height: size,
-          borderRadius: size / 2,
-          backgroundColor: colors.white,
-          borderWidth: 2,
-          borderColor: colors.black,
-          alignItems: 'center',
-          justifyContent: 'center',
-        },
-        style,
-      ]}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        background: colors.white,
+        borderWidth: 2,
+        borderStyle: 'solid',
+        borderColor: colors.black,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        padding: 0,
+        lineHeight: 1,
+        ...style,
+      }}
     >
-      <Text style={{ fontSize: size * 0.52, color: active ? colors.heartActive : colors.black, lineHeight: size * 0.6 }}>
+      <span style={{ fontSize: size * 0.52, color: active ? colors.heartActive : colors.black }}>
         {active ? '♥' : '♡'}
-      </Text>
-    </Pressable>
+      </span>
+    </button>
   );
 }

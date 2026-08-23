@@ -1,5 +1,3 @@
-import React from 'react';
-import { Text, View } from 'react-native';
 import { colors, fonts } from '../theme/tokens';
 
 interface BadgeProps {
@@ -10,30 +8,29 @@ interface BadgeProps {
 }
 
 export function Badge({ label, filled = false, bg, textColor }: BadgeProps) {
-  const backgroundColor = bg ?? (filled ? colors.black : colors.white);
+  const background = bg ?? (filled ? colors.black : colors.white);
   const color = textColor ?? (filled ? colors.white : colors.black);
   return (
-    <View
+    <span
       style={{
-        alignSelf: 'flex-start',
-        paddingVertical: 4,
-        paddingHorizontal: 9,
+        display: 'inline-block',
+        whiteSpace: 'nowrap',
+        paddingTop: 4,
+        paddingBottom: 4,
+        paddingLeft: 9,
+        paddingRight: 9,
         borderRadius: 100,
         borderWidth: 1.5,
+        borderStyle: 'solid',
         borderColor: colors.black,
-        backgroundColor,
+        background,
+        fontFamily: fonts.body,
+        fontSize: 11.5,
+        fontWeight: 700,
+        color,
       }}
     >
-      <Text
-        style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, fontWeight: '700', color }}
-        numberOfLines={1}
-      >
-        {label}
-      </Text>
-    </View>
+      {label}
+    </span>
   );
-}
-
-export function MicroBadgeRow({ children }: { children: React.ReactNode }) {
-  return <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>{children}</View>;
 }

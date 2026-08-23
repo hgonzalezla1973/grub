@@ -1,9 +1,7 @@
-import React from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
 import { colors, fonts } from '../theme/tokens';
 import { ProgressBar } from '../components/ProgressBar';
 import { PROFILE, QUESTS, rewards, STICKERS } from '../data/rewards';
-import { DIET_FILTERS, DietCategory } from '../data/restaurants';
+import { DIET_FILTERS, type DietCategory } from '../data/restaurants';
 import { useApp } from '../state/AppState';
 
 export function ProfileScreen() {
@@ -25,249 +23,303 @@ export function ProfileScreen() {
   ];
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 22, paddingBottom: 16 }}>
-      <View
+    <div
+      style={{
+        flex: 1,
+        overflowY: 'auto',
+        background: colors.cream,
+        padding: 20,
+        paddingTop: 22,
+        paddingBottom: 16,
+      }}
+    >
+      <div
         style={{
-          backgroundColor: colors.purple,
+          background: colors.purple,
           borderWidth: 2,
+          borderStyle: 'solid',
           borderColor: colors.black,
           borderRadius: 22,
           padding: 18,
+          display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           marginBottom: 14,
-          shadowColor: colors.black,
-          shadowOffset: { width: 5, height: 5 },
-          shadowOpacity: 1,
-          shadowRadius: 0,
+          boxShadow: `5px 5px 0 ${colors.black}`,
         }}
       >
-        <View
+        <div
           style={{
             width: 66,
             height: 66,
             borderRadius: 33,
-            backgroundColor: colors.white,
+            background: colors.white,
             borderWidth: 2,
+            borderStyle: 'solid',
             borderColor: colors.black,
             marginBottom: 10,
           }}
         />
-        <Text style={{ fontFamily: fonts.display, fontSize: 34, fontWeight: '900', textTransform: 'uppercase' }}>
-          {PROFILE.name}
-        </Text>
-        <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, fontWeight: '600', opacity: 0.8, marginTop: 2 }}>
+        <div style={{ fontFamily: fonts.display, fontSize: 34, fontWeight: 900, textTransform: 'uppercase' }}>{PROFILE.name}</div>
+        <div style={{ fontFamily: fonts.body, fontSize: 13, fontWeight: 600, opacity: 0.8, marginTop: 2 }}>
           {PROFILE.location} · joined {PROFILE.joined}
-        </Text>
-      </View>
+        </div>
+      </div>
 
-      <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
         {stats.map((s) => (
-          <View
+          <div
             key={s.label}
             style={{
               flex: 1,
-              backgroundColor: s.bg,
+              background: s.bg,
               borderWidth: 2,
+              borderStyle: 'solid',
               borderColor: colors.black,
               borderRadius: 18,
               padding: 12,
-              shadowColor: colors.black,
-              shadowOffset: { width: 4, height: 4 },
-              shadowOpacity: 1,
-              shadowRadius: 0,
+              boxShadow: `4px 4px 0 ${colors.black}`,
             }}
           >
-            <Text style={{ fontFamily: fonts.display800, fontSize: 30, fontWeight: '800' }}>{s.value}</Text>
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+            <div style={{ fontFamily: fonts.display, fontSize: 30, fontWeight: 800 }}>{s.value}</div>
+            <div style={{ fontFamily: fonts.body, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4 }}>
               {s.label}
-            </Text>
-          </View>
+            </div>
+          </div>
         ))}
-      </View>
+      </div>
 
-      <View
+      <div
         style={{
-          backgroundColor: colors.green,
+          background: colors.green,
           borderWidth: 2,
+          borderStyle: 'solid',
           borderColor: colors.black,
           borderRadius: 20,
           padding: 16,
           marginBottom: 20,
-          shadowColor: colors.black,
-          shadowOffset: { width: 5, height: 5 },
-          shadowOpacity: 1,
-          shadowRadius: 0,
+          boxShadow: `5px 5px 0 ${colors.black}`,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11.5, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <span style={{ fontFamily: fonts.body, fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.6 }}>
             Sprout points
-          </Text>
-          <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, fontWeight: '600' }}>🔥 {rewards.streak} week streak</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <Text style={{ fontFamily: fonts.display, fontSize: 42, fontWeight: '900' }}>{rewards.points.toLocaleString()}</Text>
-          <View
+          </span>
+          <span style={{ fontFamily: fonts.body, fontSize: 12.5, fontWeight: 600 }}>🔥 {rewards.streak} week streak</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+          <span style={{ fontFamily: fonts.display, fontSize: 42, fontWeight: 900 }}>{rewards.points.toLocaleString()}</span>
+          <span
             style={{
-              backgroundColor: colors.white,
+              background: colors.white,
               borderWidth: 2,
+              borderStyle: 'solid',
               borderColor: colors.black,
               borderRadius: 100,
-              paddingVertical: 5,
-              paddingHorizontal: 12,
+              paddingTop: 5,
+              paddingBottom: 5,
+              paddingLeft: 12,
+              paddingRight: 12,
+              fontFamily: fonts.body,
+              fontSize: 12,
+              fontWeight: 700,
+              whiteSpace: 'nowrap',
             }}
           >
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12, fontWeight: '700' }} numberOfLines={1}>
-              {rewards.tier}
-            </Text>
-          </View>
-        </View>
+            {rewards.tier}
+          </span>
+        </div>
         <ProgressBar progress={pointsPct} />
-        <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, fontWeight: '600', marginTop: 8, opacity: 0.85 }}>
+        <div style={{ fontFamily: fonts.body, fontSize: 12, fontWeight: 600, marginTop: 8, opacity: 0.85 }}>
           {pointsToNext} points to {rewards.nextTier} — unlocks {rewards.nextPerk}.
-        </Text>
-      </View>
+        </div>
+      </div>
 
-      <Text style={{ fontFamily: fonts.display800, fontSize: 26, fontWeight: '800', textTransform: 'uppercase', marginBottom: 2 }}>
+      <div style={{ fontFamily: fonts.display, fontSize: 26, fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>
         This month's quests
-      </Text>
-      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12.5, fontWeight: '600', opacity: 0.7, marginBottom: 10 }}>
-        Resets in 9 days
-      </Text>
-      <View style={{ gap: 10, marginBottom: 20 }}>
+      </div>
+      <div style={{ fontFamily: fonts.body, fontSize: 12.5, fontWeight: 600, opacity: 0.7, marginBottom: 10 }}>Resets in 9 days</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 20 }}>
         {QUESTS.map((q) => (
-          <View
+          <div
             key={q.title}
             style={{
-              backgroundColor: q.bg,
+              background: q.bg,
               borderWidth: 2,
+              borderStyle: 'solid',
               borderColor: colors.black,
               borderRadius: 20,
               padding: 14,
-              shadowColor: colors.black,
-              shadowOffset: { width: 4, height: 4 },
-              shadowOpacity: 1,
-              shadowRadius: 0,
+              boxShadow: `4px 4px 0 ${colors.black}`,
             }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-              <Text style={{ fontFamily: fonts.display800, fontSize: 23, fontWeight: '800', textTransform: 'uppercase', flex: 1 }} numberOfLines={1}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, gap: 8 }}>
+              <span
+                style={{
+                  fontFamily: fonts.display,
+                  fontSize: 23,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  flex: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 {q.title}
-              </Text>
-              <View style={{ backgroundColor: colors.black, borderRadius: 100, paddingVertical: 4, paddingHorizontal: 10 }}>
-                <Text style={{ color: colors.white, fontFamily: fonts.bodyBold, fontSize: 12, fontWeight: '700' }}>+{q.reward}</Text>
-              </View>
-            </View>
-            <Text style={{ fontFamily: fonts.body, fontSize: 13.5, lineHeight: 18, marginBottom: 10 }}>{q.detail}</Text>
+              </span>
+              <span
+                style={{
+                  background: colors.black,
+                  borderRadius: 100,
+                  paddingTop: 4,
+                  paddingBottom: 4,
+                  paddingLeft: 10,
+                  paddingRight: 10,
+                  color: colors.white,
+                  fontFamily: fonts.body,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                +{q.reward}
+              </span>
+            </div>
+            <div style={{ fontFamily: fonts.body, fontSize: 13.5, lineHeight: 1.35, marginBottom: 10 }}>{q.detail}</div>
             <ProgressBar progress={q.done / q.goal} height={12} />
-            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 12, fontWeight: '600', marginTop: 6, opacity: 0.85 }}>
+            <div style={{ fontFamily: fonts.body, fontSize: 12, fontWeight: 600, marginTop: 6, opacity: 0.85 }}>
               {q.done} of {q.goal} done
-            </Text>
-          </View>
+            </div>
+          </div>
         ))}
-      </View>
+      </div>
 
-      <Text style={{ fontFamily: fonts.display800, fontSize: 26, fontWeight: '800', textTransform: 'uppercase', marginBottom: 2 }}>
+      <div style={{ fontFamily: fonts.display, fontSize: 26, fontWeight: 800, textTransform: 'uppercase', marginBottom: 2 }}>
         Sticker book
-      </Text>
-      <Text style={{ fontFamily: fonts.body, fontSize: 13, opacity: 0.7, marginBottom: 10, lineHeight: 18 }}>
+      </div>
+      <div style={{ fontFamily: fonts.body, fontSize: 13, opacity: 0.7, marginBottom: 10, lineHeight: 1.35 }}>
         Earn one for every milestone. Trade nothing, brag freely.
-      </Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
         {STICKERS.map((st) => (
-          <View
+          <div
             key={st.label}
             style={{
-              width: '22%',
-              aspectRatio: 1,
+              aspectRatio: '1',
               borderWidth: 2,
+              borderStyle: 'solid',
               borderColor: colors.black,
               borderRadius: 16,
+              display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               padding: 4,
-              backgroundColor: st.earned ? colors.white : 'rgba(0,0,0,0.06)',
+              background: st.earned ? colors.white : 'rgba(0,0,0,0.06)',
               opacity: st.earned ? 1 : 0.45,
-              shadowColor: colors.black,
-              shadowOffset: { width: 3, height: 3 },
-              shadowOpacity: st.earned ? 1 : 0,
-              shadowRadius: 0,
+              boxShadow: st.earned ? `3px 3px 0 ${colors.black}` : 'none',
             }}
           >
-            <Text style={{ fontSize: 22, marginBottom: 4 }}>{st.icon}</Text>
-            <Text
-              style={{ fontFamily: fonts.bodyBold, fontSize: 8.5, fontWeight: '700', textTransform: 'uppercase', textAlign: 'center', letterSpacing: -0.1 }}
-              numberOfLines={2}
-              adjustsFontSizeToFit
+            <span style={{ fontSize: 22, marginBottom: 4 }}>{st.icon}</span>
+            <span
+              style={{
+                fontFamily: fonts.body,
+                fontSize: 9.5,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                textAlign: 'center',
+                lineHeight: 1.15,
+              }}
             >
               {st.label}
-            </Text>
-          </View>
+            </span>
+          </div>
         ))}
-      </View>
+      </div>
 
-      <Text style={{ fontFamily: fonts.display800, fontSize: 26, fontWeight: '800', textTransform: 'uppercase', marginBottom: 10 }}>
+      <div style={{ fontFamily: fonts.display, fontSize: 26, fontWeight: 800, textTransform: 'uppercase', marginBottom: 10 }}>
         My diet
-      </Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 6 }}>
         {DIET_FILTERS.map(([key, label]) => {
           const active = app.diet.includes(key);
           return (
-            <Pressable
+            <button
+              type="button"
               key={key}
-              onPress={() => app.toggleDiet(key as DietCategory)}
+              onClick={() => app.toggleDiet(key as DietCategory)}
               style={{
-                paddingVertical: 9,
-                paddingHorizontal: 15,
+                paddingTop: 9,
+                paddingBottom: 9,
+                paddingLeft: 15,
+                paddingRight: 15,
                 borderRadius: 100,
                 borderWidth: 2,
+                borderStyle: 'solid',
                 borderColor: colors.black,
-                backgroundColor: active ? colors.black : colors.white,
+                background: active ? colors.black : colors.white,
+                cursor: 'pointer',
+                fontFamily: fonts.body,
+                fontSize: 12.5,
+                fontWeight: 700,
+                color: active ? colors.white : colors.black,
               }}
             >
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, fontWeight: '700', color: active ? colors.white : colors.black }}>
-                {label}
-              </Text>
-            </Pressable>
+              {label}
+            </button>
           );
         })}
-      </View>
-      <Text style={{ fontFamily: fonts.body, fontSize: 12.5, opacity: 0.65, marginBottom: 20 }}>
+      </div>
+      <div style={{ fontFamily: fonts.body, fontSize: 12.5, opacity: 0.65, marginBottom: 20 }}>
         Used as the default filter every time you search.
-      </Text>
+      </div>
 
-      <Text style={{ fontFamily: fonts.display800, fontSize: 26, fontWeight: '800', textTransform: 'uppercase', marginBottom: 10 }}>
+      <div style={{ fontFamily: fonts.display, fontSize: 26, fontWeight: 800, textTransform: 'uppercase', marginBottom: 10 }}>
         Activity
-      </Text>
-      <View style={{ gap: 8, marginBottom: 22 }}>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 22 }}>
         {activityRows.map((row) => (
-          <View
+          <div
             key={row.label}
             style={{
-              flexDirection: 'row',
+              display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              backgroundColor: colors.white,
+              background: colors.white,
               borderWidth: 2,
+              borderStyle: 'solid',
               borderColor: colors.black,
               borderRadius: 18,
               padding: 14,
             }}
           >
-            <View>
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 15, fontWeight: '700' }}>{row.label}</Text>
-              <Text style={{ fontFamily: fonts.body, fontSize: 12.5, opacity: 0.7, marginTop: 2 }}>{row.detail}</Text>
-            </View>
-            <Text style={{ fontSize: 20 }}>›</Text>
-          </View>
+            <div>
+              <div style={{ fontFamily: fonts.body, fontSize: 15, fontWeight: 700 }}>{row.label}</div>
+              <div style={{ fontFamily: fonts.body, fontSize: 12.5, opacity: 0.7, marginTop: 2 }}>{row.detail}</div>
+            </div>
+            <span style={{ fontSize: 20 }}>›</span>
+          </div>
         ))}
-      </View>
+      </div>
 
-      <Pressable onPress={app.goHome}>
-        <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, fontWeight: '700', textDecorationLine: 'underline', textAlign: 'center' }}>
-          Back to home
-        </Text>
-      </Pressable>
-    </ScrollView>
+      <button
+        type="button"
+        onClick={app.goHome}
+        style={{
+          background: 'none',
+          border: 'none',
+          width: '100%',
+          cursor: 'pointer',
+          fontFamily: fonts.body,
+          fontSize: 13,
+          fontWeight: 700,
+          textDecoration: 'underline',
+          textAlign: 'center',
+        }}
+      >
+        Back to home
+      </button>
+    </div>
   );
 }

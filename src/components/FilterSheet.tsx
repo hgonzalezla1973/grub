@@ -1,96 +1,114 @@
-import React from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import type { ReactNode } from 'react';
 import { colors, fonts } from '../theme/tokens';
 import { Chip } from './Chip';
 import { Pill } from './Pill';
 import { DIET_FILTERS, DISTANCE_FILTERS, MOOD_FILTERS } from '../data/restaurants';
-import { useApp } from '../state/AppState';
+import { useApp, type DistanceKey } from '../state/AppState';
 
 export function FilterSheet() {
   const app = useApp();
 
+  if (!app.filtersOpen) return null;
+
   return (
-    <Modal visible={app.filtersOpen} transparent animationType="fade" onRequestClose={app.closeFilters}>
-      <Pressable style={{ flex: 1, backgroundColor: colors.scrim }} onPress={app.closeFilters} />
-      <View
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+      <div
+        onClick={app.closeFilters}
+        style={{ position: 'absolute', inset: 0, background: colors.scrim }}
+      />
+      <div
         style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
+          position: 'relative',
+          width: '100%',
+          maxWidth: 430,
           maxHeight: '82%',
-          backgroundColor: colors.cream,
+          background: colors.cream,
           borderTopWidth: 2,
+          borderTopStyle: 'solid',
           borderColor: colors.black,
           borderTopLeftRadius: 26,
           borderTopRightRadius: 26,
           paddingTop: 22,
-          paddingHorizontal: 20,
+          paddingLeft: 20,
+          paddingRight: 20,
           paddingBottom: 20,
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-          <Text style={{ fontFamily: fonts.display800, fontSize: 32, fontWeight: '800', textTransform: 'uppercase' }}>Filters</Text>
-          <Pressable
-            onPress={app.closeFilters}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+          <span style={{ fontFamily: fonts.display, fontSize: 32, fontWeight: 800, textTransform: 'uppercase' }}>Filters</span>
+          <button
+            type="button"
+            onClick={app.closeFilters}
             style={{
               width: 32,
               height: 32,
               borderRadius: 16,
-              backgroundColor: colors.white,
+              background: colors.white,
               borderWidth: 2,
+              borderStyle: 'solid',
               borderColor: colors.black,
+              display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              cursor: 'pointer',
+              fontSize: 16,
+              fontWeight: 700,
             }}
           >
-            <Text style={{ fontSize: 16, fontWeight: '700' }}>✕</Text>
-          </Pressable>
-        </View>
+            ✕
+          </button>
+        </div>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
+        <div style={{ overflowY: 'auto' }}>
           <FilterGroup label="Diet">
             {DIET_FILTERS.map(([key, label]) => (
-              <Chip key={key} label={label} active={app.diet.includes(key)} onPress={() => app.toggleDiet(key)} />
+              <Chip key={key} label={label} active={app.diet.includes(key)} onClick={() => app.toggleDiet(key)} />
             ))}
           </FilterGroup>
 
           <FilterGroup label="Mood">
             {MOOD_FILTERS.map(([key, label]) => (
-              <Chip key={key} label={label} active={app.mood === key} onPress={() => app.setMood(key)} />
+              <Chip key={key} label={label} active={app.mood === key} onClick={() => app.setMood(key)} />
             ))}
           </FilterGroup>
 
           <FilterGroup label="Distance">
             {DISTANCE_FILTERS.map(([key, label]) => (
-              <Chip key={key} label={label} active={app.distance === key} onPress={() => app.setDistance(key as any)} />
+              <Chip
+                key={key}
+                label={label}
+                active={app.distance === key}
+                onClick={() => app.setDistance(key as DistanceKey)}
+              />
             ))}
           </FilterGroup>
-        </ScrollView>
+        </div>
 
-        <View style={{ marginTop: 8 }}>
+        <div style={{ marginTop: 8 }}>
           <Pill
             label={`Show ${app.filteredRestaurants.length} results`}
-            onPress={app.closeFilters}
-            labelColor={colors.black}
+            onClick={app.closeFilters}
             variant="primary"
-            style={{ backgroundColor: colors.green }}
+            labelColor={colors.black}
+            style={{ background: colors.green }}
             fontSize={20}
           />
-        </View>
-      </View>
-    </Modal>
+        </div>
+      </div>
+    </div>
   );
 }
 
-function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterGroup({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <View style={{ marginBottom: 20 }}>
-      <Text
+    <div style={{ marginBottom: 20 }}>
+      <div
         style={{
-          fontFamily: fonts.bodyBold,
+          fontFamily: fonts.body,
           fontSize: 11.5,
-          fontWeight: '700',
+          fontWeight: 700,
           textTransform: 'uppercase',
           letterSpacing: 0.9,
           marginBottom: 10,
@@ -98,8 +116,8 @@ function FilterGroup({ label, children }: { label: string; children: React.React
         }}
       >
         {label}
-      </Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>{children}</View>
-    </View>
+      </div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>{children}</div>
+    </div>
   );
 }

@@ -1,9 +1,9 @@
-import { Coords, haversineMiles } from '../utils/geo';
-import { DietCategory, Restaurant } from '../data/restaurants';
+import { haversineMiles, type Coords } from '../utils/geo';
+import type { DietCategory, Restaurant } from '../data/restaurants';
 
-// Read at bundle time by Metro (EXPO_PUBLIC_ vars are inlined into the JS bundle).
+// Read at build time by Vite (VITE_ vars are inlined into the JS bundle).
 // See README-GOOGLE-PLACES-SETUP.md for how to get a key.
-const API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY;
+const API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY as string | undefined;
 
 const SEARCH_FIELD_MASK = [
   'places.id',

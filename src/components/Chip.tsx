@@ -1,39 +1,38 @@
-import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { type CSSProperties } from 'react';
 import { colors, fonts } from '../theme/tokens';
 
 interface ChipProps {
   label: string;
   active: boolean;
-  onPress: () => void;
+  onClick: () => void;
 }
 
-export function Chip({ label, active, onPress }: ChipProps) {
+export function Chip({ label, active, onClick }: ChipProps) {
   return (
-    <Pressable
-      onPress={onPress}
+    <button
+      type="button"
+      onClick={onClick}
       style={{
         flexShrink: 0,
-        paddingVertical: 9,
-        paddingHorizontal: 15,
+        paddingTop: 9,
+        paddingBottom: 9,
+        paddingLeft: 15,
+        paddingRight: 15,
         borderRadius: 100,
         borderWidth: 2,
+        borderStyle: 'solid',
         borderColor: colors.black,
-        backgroundColor: active ? colors.black : colors.white,
+        background: active ? colors.black : colors.white,
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+        fontFamily: fonts.body,
+        fontSize: 12.5,
+        fontWeight: 700,
+        color: active ? colors.white : colors.black,
       }}
     >
-      <Text
-        style={{
-          fontFamily: fonts.bodyBold,
-          fontSize: 12.5,
-          fontWeight: '700',
-          color: active ? colors.white : colors.black,
-        }}
-        numberOfLines={1}
-      >
-        {label}
-      </Text>
-    </Pressable>
+      {label}
+    </button>
   );
 }
 
@@ -46,53 +45,52 @@ interface SegmentedControlProps<T extends string> {
   options: SegmentOption<T>[];
   value: T;
   onChange: (v: T) => void;
-  style?: any;
+  style?: CSSProperties;
 }
 
 export function SegmentedControl<T extends string>({ options, value, onChange, style }: SegmentedControlProps<T>) {
   return (
-    <View
-      style={[
-        {
-          flexDirection: 'row',
-          gap: 6,
-          backgroundColor: colors.white,
-          padding: 4,
-          borderRadius: 100,
-          borderWidth: 2,
-          borderColor: colors.black,
-          flexShrink: 0,
-        },
-        style,
-      ]}
+    <div
+      style={{
+        display: 'flex',
+        gap: 6,
+        background: colors.white,
+        padding: 4,
+        borderRadius: 100,
+        borderWidth: 2,
+        borderStyle: 'solid',
+        borderColor: colors.black,
+        flexShrink: 0,
+        ...style,
+      }}
     >
       {options.map((opt) => {
         const active = opt.value === value;
         return (
-          <Pressable
+          <button
+            type="button"
             key={opt.value}
-            onPress={() => onChange(opt.value)}
+            onClick={() => onChange(opt.value)}
             style={{
-              paddingVertical: 8,
-              paddingHorizontal: 15,
+              paddingTop: 8,
+              paddingBottom: 8,
+              paddingLeft: 15,
+              paddingRight: 15,
               borderRadius: 100,
-              backgroundColor: active ? colors.black : 'transparent',
+              border: 'none',
+              background: active ? colors.black : 'transparent',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              fontFamily: fonts.body,
+              fontSize: 12.5,
+              fontWeight: 700,
+              color: active ? colors.white : colors.black,
             }}
           >
-            <Text
-              style={{
-                fontFamily: fonts.bodyBold,
-                fontSize: 12.5,
-                fontWeight: '700',
-                color: active ? colors.white : colors.black,
-              }}
-              numberOfLines={1}
-            >
-              {opt.label}
-            </Text>
-          </Pressable>
+            {opt.label}
+          </button>
         );
       })}
-    </View>
+    </div>
   );
 }

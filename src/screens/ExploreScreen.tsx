@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
 import { colors, fonts } from '../theme/tokens';
 import { Chip, SegmentedControl } from '../components/Chip';
 import { RestaurantCard } from '../components/RestaurantCard';
@@ -8,7 +7,7 @@ import { EmptyState } from '../components/EmptyState';
 import { SkeletonGrid } from '../components/Skeleton';
 import { DataSourceBanner } from '../components/DataSourceBanner';
 import { COLLECTIONS } from '../data/restaurants';
-import { useApp } from '../state/AppState';
+import { useApp, type Collection } from '../state/AppState';
 import { FilterSheet } from '../components/FilterSheet';
 
 export function ExploreScreen() {
@@ -31,70 +30,103 @@ export function ExploreScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.cream, paddingHorizontal: 18, paddingTop: 20, paddingBottom: 8 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-        <Text
-          style={{ fontFamily: fonts.display, fontSize: 36, fontWeight: '900', lineHeight: 37.8, textTransform: 'uppercase', flex: 1 }}
-          numberOfLines={2}
-        >
-          {app.filteredRestaurants.length} spots{'\n'}near you
-        </Text>
-        <Pressable
-          onPress={app.openFilters}
+    <div
+      style={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
+        background: colors.cream,
+        paddingLeft: 18,
+        paddingRight: 18,
+        paddingTop: 20,
+        paddingBottom: 8,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14, gap: 10 }}>
+        <div
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            backgroundColor: colors.yellow,
-            borderWidth: 2,
-            borderColor: colors.black,
-            borderRadius: 100,
-            paddingVertical: 9,
-            paddingHorizontal: 14,
+            fontFamily: fonts.display,
+            fontSize: 36,
+            fontWeight: 900,
+            lineHeight: 1.05,
+            textTransform: 'uppercase',
+            flex: 1,
           }}
         >
-          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, fontWeight: '700' }}>Filters</Text>
+          {app.filteredRestaurants.length} spots
+          <br />
+          near you
+        </div>
+        <button
+          type="button"
+          onClick={app.openFilters}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            background: colors.yellow,
+            borderWidth: 2,
+            borderStyle: 'solid',
+            borderColor: colors.black,
+            borderRadius: 100,
+            paddingTop: 9,
+            paddingBottom: 9,
+            paddingLeft: 14,
+            paddingRight: 14,
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          <span style={{ fontFamily: fonts.body, fontSize: 13, fontWeight: 700 }}>Filters</span>
           {app.hasActiveFilters && (
-            <View
+            <span
               style={{
                 minWidth: 18,
                 height: 18,
                 borderRadius: 9,
-                backgroundColor: colors.black,
+                background: colors.black,
+                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                paddingHorizontal: 4,
+                paddingLeft: 4,
+                paddingRight: 4,
+                color: colors.white,
+                fontSize: 11,
+                fontFamily: fonts.body,
+                fontWeight: 700,
               }}
             >
-              <Text style={{ color: colors.white, fontSize: 11, fontFamily: fonts.bodyBold, fontWeight: '700' }}>
-                {app.activeFilterCount}
-              </Text>
-            </View>
+              {app.activeFilterCount}
+            </span>
           )}
-        </Pressable>
-      </View>
+        </button>
+      </div>
 
       <DataSourceBanner status={app.restaurantsStatus} usingSampleData={app.usingSampleData} />
 
-      <TextInput
+      <input
         value={app.search}
-        onChangeText={app.setSearch}
+        onChange={(e) => app.setSearch(e.target.value)}
         placeholder="Search food, restaurants, cafés…"
-        placeholderTextColor="rgba(0,0,0,0.45)"
         style={{
           borderWidth: 2,
+          borderStyle: 'solid',
           borderColor: colors.black,
           borderRadius: 100,
-          paddingVertical: 13,
-          paddingHorizontal: 16,
-          fontFamily: fonts.body,
+          paddingTop: 13,
+          paddingBottom: 13,
+          paddingLeft: 16,
+          paddingRight: 16,
           fontSize: 14,
-          backgroundColor: colors.white,
+          background: colors.white,
           marginBottom: 12,
+          outline: 'none',
+          width: '100%',
         }}
       />
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
         <SegmentedControl
           options={[
             { label: 'Distance', value: 'distance' },
@@ -112,58 +144,78 @@ export function ExploreScreen() {
           onChange={app.setResultsView}
         />
         {app.hasActiveFilters && (
-          <Pressable onPress={app.clearFilters}>
-            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, fontWeight: '700', textDecorationLine: 'underline' }}>
-              Clear
-            </Text>
-          </Pressable>
+          <button
+            type="button"
+            onClick={app.clearFilters}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+              fontFamily: fonts.body,
+              fontSize: 12.5,
+              fontWeight: 700,
+              textDecoration: 'underline',
+            }}
+          >
+            Clear
+          </button>
         )}
-      </View>
+      </div>
 
-      {loading ? (
-        <SkeletonGrid />
-      ) : app.resultsView === 'list' ? (
-        app.filteredRestaurants.length === 0 ? (
-          <EmptyState
-            icon="🔍"
-            title="No spots match"
-            detail="Try a different search term, or clear your filters to see everything nearby."
-            actionLabel="Reset search & filters"
-            onAction={resetSearchAndFilters}
-          />
-        ) : (
-          <FlatList
-            data={app.filteredRestaurants}
-            keyExtractor={(r) => r.id}
-            numColumns={2}
-            columnWrapperStyle={{ gap: 12 }}
-            contentContainerStyle={{ gap: 12, paddingBottom: 12 }}
-            renderItem={({ item }) => <RestaurantCard restaurant={item} style={{ flex: 1 }} />}
-            showsVerticalScrollIndicator={false}
-          />
-        )
-      ) : (
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', gap: 6, marginBottom: 10 }}>
-            {COLLECTIONS.map(([key, label]) => (
-              <Chip key={key} label={label} active={app.collection === key} onPress={() => app.setCollection(key as any)} />
-            ))}
-          </View>
-          {app.filteredRestaurants.length === 0 ? (
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        {loading ? (
+          <div style={{ overflowY: 'auto' }}>
+            <SkeletonGrid />
+          </div>
+        ) : app.resultsView === 'list' ? (
+          app.filteredRestaurants.length === 0 ? (
             <EmptyState
-              icon="🗺️"
-              title="Nothing on the map"
-              detail="No spots match this collection and filter combo. Try a different one."
+              icon="🔍"
+              title="No spots match"
+              detail="Try a different search term, or clear your filters to see everything nearby."
               actionLabel="Reset search & filters"
               onAction={resetSearchAndFilters}
             />
           ) : (
-            <MapPlaceholder restaurants={app.filteredRestaurants} />
-          )}
-        </View>
-      )}
+            <div
+              style={{
+                overflowY: 'auto',
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 12,
+                alignContent: 'start',
+                paddingBottom: 12,
+              }}
+            >
+              {app.filteredRestaurants.map((r) => (
+                <RestaurantCard key={r.id} restaurant={r} />
+              ))}
+            </div>
+          )
+        ) : (
+          <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap' }}>
+              {COLLECTIONS.map(([key, label]) => (
+                <Chip key={key} label={label} active={app.collection === key} onClick={() => app.setCollection(key as Collection)} />
+              ))}
+            </div>
+            {app.filteredRestaurants.length === 0 ? (
+              <EmptyState
+                icon="🗺️"
+                title="Nothing on the map"
+                detail="No spots match this collection and filter combo. Try a different one."
+                actionLabel="Reset search & filters"
+                onAction={resetSearchAndFilters}
+              />
+            ) : (
+              <MapPlaceholder restaurants={app.filteredRestaurants} />
+            )}
+          </div>
+        )}
+      </div>
 
       <FilterSheet />
-    </View>
+    </div>
   );
 }

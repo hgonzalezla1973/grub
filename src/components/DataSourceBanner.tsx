@@ -1,7 +1,5 @@
-import React from 'react';
-import { Text, View } from 'react-native';
 import { colors, fonts } from '../theme/tokens';
-import { RestaurantsStatus } from '../state/AppState';
+import type { RestaurantsStatus } from '../state/AppState';
 
 interface Props {
   status: RestaurantsStatus;
@@ -23,18 +21,25 @@ export function DataSourceBanner({ status, usingSampleData }: Props) {
   }
 
   return (
-    <View
+    <div
       style={{
-        backgroundColor: colors.yellow,
+        background: colors.yellow,
         borderWidth: 2,
+        borderStyle: 'solid',
         borderColor: colors.black,
         borderRadius: 12,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
+        paddingTop: 8,
+        paddingBottom: 8,
+        paddingLeft: 12,
+        paddingRight: 12,
         marginBottom: 12,
+        fontFamily: fonts.body,
+        fontSize: 11.5,
+        fontWeight: 600,
+        lineHeight: 1.3,
       }}
     >
-      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, fontWeight: '600', lineHeight: 15 }}>{message}</Text>
-    </View>
+      {message}
+    </div>
   );
 }

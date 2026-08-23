@@ -30,12 +30,14 @@ personal testing). Go to **Billing** in the left sidebar and attach a card.
 
 Click into the key you just created:
 - Under **API restrictions**, choose "Restrict key" and select only **Places API (New)**.
-- Under **Application restrictions**: leave this as **None** for now. The
-  "restrict to iOS app" option only works with Google's native iOS SDK — it
-  does nothing for the plain HTTPS calls this app makes, and Expo Go (not
-  your app) is what iOS sees during testing anyway. There's currently no way
-  to fully lock this key down for a backend-less mobile app making direct
-  API calls — see the security note below.
+- Under **Application restrictions**, choose **Websites** and add:
+  - `localhost:5173/*` (or whatever port `npm run dev` prints) for local testing
+  - your real domain later, once this is deployed somewhere
+  
+  This actually works for a plain web app (unlike native apps calling a REST
+  API directly) — Google checks the browser's `Referer` header, so a key
+  restricted this way can't be used from anywhere else. See the security note
+  below for what changes once this gets wrapped into an iOS app via Capacitor.
 - Optional but recommended: in **APIs & Services → Quotas**, set a daily
   request cap on Places API so a leaked/misused key can't run up a large bill.
 
@@ -50,17 +52,22 @@ cp .env.example .env
 Open `.env` and paste your key:
 
 ```
-EXPO_PUBLIC_GOOGLE_PLACES_API_KEY=your_key_here
+VITE_GOOGLE_PLACES_API_KEY=your_key_here
 ```
 
-`.env` is gitignored — it will never be committed. Restart `npx expo start`
-after adding it (env vars are only read at bundler startup).
+`.env` is gitignored — it will never be committed. Restart `npm run dev`
+after adding or changing it (env vars are only read at dev-server/build startup).
 
 ## Security note
 
-Because this app has no backend, the key ships inside the JS bundle on every
-device that runs the app. Anyone with the app could technically extract it
-and use your quota. That's an acceptable tradeoff for **personal testing**,
-but do not publish or widely distribute a build with a real key embedded —
-if you want to ship this publicly, the key needs to move behind a small
-backend proxy that the app calls instead of Google directly.
+While this runs as a website (`npm run dev`, or deployed to a real domain),
+the **Websites** restriction above genuinely locks the key down — a copy of
+the key alone isn't useful without also spoofing your domain's `Referer`.
+
+That protection goes away once this is wrapped into a native iOS app via
+Capacitor: the app then runs from a `capacitor://` origin with no real
+`Referer` header, so the website restriction won't apply and the key ships
+readable inside the app bundle. That's fine for your own personal-device
+testing, but before distributing an iOS build more widely, the key should
+move behind a small backend proxy that the app calls instead of Google
+directly — a good thing to revisit when that transition actually happens.
