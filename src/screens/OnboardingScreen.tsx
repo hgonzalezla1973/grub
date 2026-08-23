@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Linking, Pressable, Text, View } from 'react-native';
 import * as Location from 'expo-location';
 import { colors, fonts } from '../theme/tokens';
 import { Pill } from '../components/Pill';
@@ -52,7 +52,7 @@ export function OnboardingScreen() {
   );
 }
 
-type LocationStatus = 'idle' | 'requesting' | 'denied';
+type LocationStatus = 'idle' | 'requesting' | 'denied' | 'blocked' | 'unavailable';
 
 function StepOne() {
   const app = useApp();
@@ -61,16 +61,21 @@ function StepOne() {
   const handleUseLocation = async () => {
     setStatus('requesting');
     try {
-      const { status: permission } = await Location.requestForegroundPermissionsAsync();
+      const { status: permission, canAskAgain } = await Location.requestForegroundPermissionsAsync();
       if (permission !== 'granted') {
-        setStatus('denied');
+        // iOS/Android only show the system prompt once per app. If a prior denial (in this
+        // app or, on Expo Go, ANY project run through it) already recorded "don't ask again",
+        // this resolves instantly with no dialog shown at all — so "denied" alone would be
+        // misleading here. canAskAgain tells us whether a re-prompt is even possible.
+        setStatus(canAskAgain ? 'denied' : 'blocked');
         return;
       }
-      const position = await Location.getCurrentPositionAsync({});
+      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
       app.setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
       app.onboardNext();
-    } catch {
-      setStatus('denied');
+    } catch (e) {
+      console.warn('[location] failed to get current position', e);
+      setStatus('unavailable');
     }
   };
 
@@ -119,6 +124,60 @@ function StepOne() {
           <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, fontWeight: '700' }}>Location access is off</Text>
           <Text style={{ fontFamily: fonts.body, fontSize: 12.5, opacity: 0.8, marginTop: 2, lineHeight: 17 }}>
             Turn it on in Settings any time, or just enter a city below to keep going.
+          </Text>
+        </View>
+      )}
+
+      {status === 'blocked' && (
+        <View
+          style={{
+            backgroundColor: 'rgba(0,0,0,0.08)',
+            borderWidth: 2,
+            borderColor: colors.black,
+            borderRadius: 14,
+            padding: 12,
+            marginBottom: 10,
+          }}
+        >
+          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, fontWeight: '700' }}>
+            Location was already turned off
+          </Text>
+          <Text style={{ fontFamily: fonts.body, fontSize: 12.5, opacity: 0.8, marginTop: 2, marginBottom: 8, lineHeight: 17 }}>
+            iOS only asks once — you (or a previous run) said no, so it won't prompt again here. Enable it in
+            Settings, or just enter a city below.
+          </Text>
+          <Pressable
+            onPress={() => Linking.openSettings()}
+            style={{
+              alignSelf: 'flex-start',
+              backgroundColor: colors.black,
+              borderRadius: 100,
+              paddingVertical: 8,
+              paddingHorizontal: 14,
+            }}
+          >
+            <Text style={{ fontFamily: fonts.bodyBold, fontSize: 12.5, fontWeight: '700', color: colors.white }}>
+              Open Settings
+            </Text>
+          </Pressable>
+        </View>
+      )}
+
+      {status === 'unavailable' && (
+        <View
+          style={{
+            backgroundColor: 'rgba(0,0,0,0.08)',
+            borderWidth: 2,
+            borderColor: colors.black,
+            borderRadius: 14,
+            padding: 12,
+            marginBottom: 10,
+          }}
+        >
+          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, fontWeight: '700' }}>Couldn't get a location fix</Text>
+          <Text style={{ fontFamily: fonts.body, fontSize: 12.5, opacity: 0.8, marginTop: 2, lineHeight: 17 }}>
+            Permission was granted, but we couldn't read a position (weak signal, or Location Services is off system-wide).
+            Try again, or enter a city below.
           </Text>
         </View>
       )}
