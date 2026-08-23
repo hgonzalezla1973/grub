@@ -32,6 +32,9 @@ export interface Restaurant {
   /** Populated once the user's real location is known; distance is then computed live from these. */
   lat?: number;
   lng?: number;
+  /** Present for restaurants sourced from the Google Places API (as opposed to sample data). */
+  placeId?: string;
+  photoName?: string;
 }
 
 export const RESTAURANTS: Restaurant[] = [

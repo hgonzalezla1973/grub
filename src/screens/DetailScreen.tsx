@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { colors, fonts } from '../theme/tokens';
 import { PhotoPlaceholder } from '../components/PhotoPlaceholder';
+import { RestaurantPhoto } from '../components/RestaurantPhoto';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { Badge } from '../components/Badge';
 import { colorForRestaurant } from '../components/RestaurantCard';
@@ -40,7 +41,8 @@ export function DetailScreen() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} showsVerticalScrollIndicator={false}>
       <View style={{ height: 200, position: 'relative' }}>
-        <PhotoPlaceholder
+        <RestaurantPhoto
+          restaurant={r}
           width="100%"
           height="100%"
           radius={0}
@@ -154,29 +156,47 @@ export function DetailScreen() {
         </View>
 
         <SectionHeading title="Vegan & veg options" />
-        <View style={{ gap: 8, marginBottom: 22 }}>
-          {r.menu.map((m) => (
-            <View
-              key={m.name}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                backgroundColor: colors.white,
-                borderWidth: 2,
-                borderColor: colors.black,
-                borderRadius: 16,
-                paddingVertical: 11,
-                paddingHorizontal: 14,
-              }}
-            >
-              <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 15, fontWeight: '600', flex: 1, marginRight: 8 }}>
-                {m.name}
-              </Text>
-              <Badge label={m.tag === 'vegan' ? 'Vegan' : 'Vegetarian'} bg={m.tag === 'vegan' ? colors.green : colors.yellow} />
-            </View>
-          ))}
-        </View>
+        {r.menu.length === 0 ? (
+          <View
+            style={{
+              backgroundColor: colors.white,
+              borderWidth: 2,
+              borderColor: colors.black,
+              borderRadius: 16,
+              padding: 14,
+              marginBottom: 22,
+            }}
+          >
+            <Text style={{ fontFamily: fonts.body, fontSize: 13.5, opacity: 0.75, lineHeight: 18.9 }}>
+              Dish-level vegan/vegetarian details aren't available for this listing yet — be the first to add a review
+              naming what's actually plant-based here.
+            </Text>
+          </View>
+        ) : (
+          <View style={{ gap: 8, marginBottom: 22 }}>
+            {r.menu.map((m) => (
+              <View
+                key={m.name}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: colors.white,
+                  borderWidth: 2,
+                  borderColor: colors.black,
+                  borderRadius: 16,
+                  paddingVertical: 11,
+                  paddingHorizontal: 14,
+                }}
+              >
+                <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 15, fontWeight: '600', flex: 1, marginRight: 8 }}>
+                  {m.name}
+                </Text>
+                <Badge label={m.tag === 'vegan' ? 'Vegan' : 'Vegetarian'} bg={m.tag === 'vegan' ? colors.green : colors.yellow} />
+              </View>
+            ))}
+          </View>
+        )}
 
         <Text style={{ fontFamily: fonts.body, fontSize: 14, opacity: 0.75, lineHeight: 19.6, marginBottom: 22 }}>
           {r.note}
@@ -189,32 +209,52 @@ export function DetailScreen() {
           </Text>
         </View>
         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 22 }}>
-          {[0, 1, 2].map((i) => (
-            <PhotoPlaceholder key={i} width="31%" height={90} radius={14} />
-          ))}
+          {[0, 1, 2].map((i) =>
+            r.photoName ? (
+              <RestaurantPhoto key={i} restaurant={r} width="31%" height={90} radius={14} />
+            ) : (
+              <PhotoPlaceholder key={i} width="31%" height={90} radius={14} />
+            )
+          )}
         </View>
 
         <SectionHeading title={`Reviews · ${r.reviewCount}`} />
-        <View style={{ gap: 10 }}>
-          {r.reviews.map((rev, i) => (
-            <View
-              key={i}
-              style={{
-                backgroundColor: colors.white,
-                borderWidth: 2,
-                borderColor: colors.black,
-                borderRadius: 18,
-                padding: 14,
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14, fontWeight: '700' }}>{rev.author}</Text>
-                <Badge label={`★ ${rev.rating}`} bg={colors.yellow} />
+        {r.reviews.length === 0 ? (
+          <View
+            style={{
+              backgroundColor: colors.white,
+              borderWidth: 2,
+              borderColor: colors.black,
+              borderRadius: 18,
+              padding: 14,
+            }}
+          >
+            <Text style={{ fontFamily: fonts.body, fontSize: 14, lineHeight: 19.6, opacity: 0.75 }}>
+              No reviews yet on Grub for this spot — be the first to say what's actually vegan here.
+            </Text>
+          </View>
+        ) : (
+          <View style={{ gap: 10 }}>
+            {r.reviews.map((rev, i) => (
+              <View
+                key={i}
+                style={{
+                  backgroundColor: colors.white,
+                  borderWidth: 2,
+                  borderColor: colors.black,
+                  borderRadius: 18,
+                  padding: 14,
+                }}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <Text style={{ fontFamily: fonts.bodyBold, fontSize: 14, fontWeight: '700' }}>{rev.author}</Text>
+                  <Badge label={`★ ${rev.rating}`} bg={colors.yellow} />
+                </View>
+                <Text style={{ fontFamily: fonts.body, fontSize: 14, lineHeight: 19.6, opacity: 0.85 }}>{rev.text}</Text>
               </View>
-              <Text style={{ fontFamily: fonts.body, fontSize: 14, lineHeight: 19.6, opacity: 0.85 }}>{rev.text}</Text>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        )}
       </View>
     </ScrollView>
   );

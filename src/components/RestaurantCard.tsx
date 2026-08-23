@@ -2,15 +2,17 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { colors, fonts } from '../theme/tokens';
 import { cardColors } from '../theme/tokens';
-import { DIET_LABEL, priceLabel, Restaurant, RESTAURANTS } from '../data/restaurants';
-import { PhotoPlaceholder } from './PhotoPlaceholder';
+import { DIET_LABEL, priceLabel, Restaurant } from '../data/restaurants';
+import { hashBearing } from '../utils/geo';
+import { RestaurantPhoto } from './RestaurantPhoto';
 import { FavoriteButton } from './FavoriteButton';
 import { Badge } from './Badge';
 import { useApp } from '../state/AppState';
 
+/** Stable per-id color, independent of position in any particular list — works for
+ *  both the fixed sample ids ("r1"...) and real Google place ids. */
 export function colorForRestaurant(r: Restaurant) {
-  const idx = RESTAURANTS.findIndex((x) => x.id === r.id);
-  return cardColors[idx % cardColors.length];
+  return cardColors[hashBearing(r.id) % cardColors.length];
 }
 
 interface Props {
@@ -41,7 +43,7 @@ export function RestaurantCard({ restaurant: r, style }: Props) {
       ]}
     >
       <View style={{ position: 'relative', marginBottom: 8 }}>
-        <PhotoPlaceholder height={88} radius={14} onColor />
+        <RestaurantPhoto restaurant={r} height={88} radius={14} onColor />
         <FavoriteButton
           active={favorite}
           onPress={() => app.toggleFavorite(r.id)}

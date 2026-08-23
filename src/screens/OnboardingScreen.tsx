@@ -94,7 +94,9 @@ function StepOne() {
         Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
         15000
       );
-      app.setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+      const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+      app.setUserLocation(coords);
+      app.loadNearbyRestaurants(coords);
       app.onboardNext();
     } catch (e) {
       console.warn('[location] failed to get current position', e);

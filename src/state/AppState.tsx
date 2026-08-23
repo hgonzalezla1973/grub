@@ -7,6 +7,9 @@ import {
   RESTAURANTS,
 } from '../data/restaurants';
 import { Coords, destinationPoint, haversineMiles, hashBearing } from '../utils/geo';
+import { hasApiKey, searchVeganVegetarianNearby } from '../services/googlePlaces';
+
+export type RestaurantsStatus = 'idle' | 'loading' | 'ready' | 'error' | 'no-api-key';
 
 export type Screen = 'onboarding' | 'home' | 'results' | 'detail' | 'saved' | 'profile';
 export type Mode = 'near' | 'trip';
@@ -32,6 +35,8 @@ interface AppStateShape {
   peekId: string | null;
   favorites: string[];
   userLocation: Coords | null;
+  apiRestaurants: Restaurant[] | null;
+  restaurantsStatus: RestaurantsStatus;
 }
 
 const initialState: AppStateShape = {
@@ -51,6 +56,8 @@ const initialState: AppStateShape = {
   peekId: null,
   favorites: [],
   userLocation: null,
+  apiRestaurants: null,
+  restaurantsStatus: 'idle',
 };
 
 interface AppContextValue extends AppStateShape {
@@ -78,6 +85,8 @@ interface AppContextValue extends AppStateShape {
   backToResults: () => void;
   setUserLocation: (loc: Coords | null) => void;
   hasLiveLocation: boolean;
+  loadNearbyRestaurants: (loc: Coords) => void;
+  usingSampleData: boolean;
   filteredRestaurants: Restaurant[];
   savedList: Restaurant[];
   selectedRestaurant: Restaurant | null;
@@ -140,14 +149,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const backToResults = useCallback(() => patch({ screen: 'results' }), [patch]);
   const setUserLocation = useCallback((loc: Coords | null) => patch({ userLocation: loc }), [patch]);
 
+  const loadNearbyRestaurants = useCallback((loc: Coords) => {
+    if (!hasApiKey()) {
+      patch({ restaurantsStatus: 'no-api-key' });
+      return;
+    }
+    patch({ restaurantsStatus: 'loading' });
+    searchVeganVegetarianNearby(loc)
+      .then((results) => setState((s) => ({ ...s, apiRestaurants: results, restaurantsStatus: 'ready' })))
+      .catch((e) => {
+        console.warn('[places] nearby search failed', e);
+        setState((s) => ({ ...s, restaurantsStatus: 'error' }));
+      });
+  }, [patch]);
+
   /**
-   * Restaurant addresses are fictional sample data, so there's nothing real to geocode.
-   * Once we have the user's real coordinates, each restaurant is anchored at its
-   * designed sample distance along a stable per-id bearing, so distance sorting/
-   * filtering and map pin placement are driven by real geo math relative to wherever
-   * the user actually is, instead of a hardcoded number baked into the dataset.
+   * Real Google Places results take priority once loaded. Until then (or if no API key is
+   * configured, or the request failed), fall back to the fictional sample dataset: since
+   * those restaurant addresses aren't real, there's nothing to geocode, so each one is
+   * anchored at its designed sample distance along a stable per-id bearing once the user's
+   * real coordinates are known, purely so distance sort/filter and map placement have
+   * *something* real-geo-shaped to work from in the demo-data case.
    */
   const liveRestaurants = useMemo(() => {
+    if (state.apiRestaurants) return state.apiRestaurants;
     const loc = state.userLocation;
     if (!loc) return RESTAURANTS;
     return RESTAURANTS.map((r) => {
@@ -156,7 +181,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const liveDistance = Math.round(haversineMiles(loc, coords) * 10) / 10;
       return { ...r, distance: liveDistance, lat: coords.lat, lng: coords.lng };
     });
-  }, [state.userLocation]);
+  }, [state.apiRestaurants, state.userLocation]);
 
   const filteredRestaurants = useMemo(() => {
     const q = state.search.trim().toLowerCase();
@@ -230,6 +255,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     backToResults,
     setUserLocation,
     hasLiveLocation: state.userLocation !== null,
+    loadNearbyRestaurants,
+    usingSampleData: state.apiRestaurants === null,
     filteredRestaurants,
     savedList,
     selectedRestaurant,

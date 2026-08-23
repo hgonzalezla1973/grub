@@ -1,7 +1,7 @@
 import React from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { colors, fonts } from '../theme/tokens';
-import { PhotoPlaceholder } from '../components/PhotoPlaceholder';
+import { RestaurantPhoto } from '../components/RestaurantPhoto';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { colorForRestaurant } from '../components/RestaurantCard';
 import { priceLabel, Restaurant } from '../data/restaurants';
@@ -90,7 +90,7 @@ function SavedRow({ restaurant: r }: { restaurant: Restaurant }) {
         shadowRadius: 0,
       }}
     >
-      <PhotoPlaceholder width={58} height={58} radius={14} onColor />
+      <RestaurantPhoto restaurant={r} width={58} height={58} radius={14} onColor />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={{ fontFamily: fonts.display800, fontSize: 25, fontWeight: '800', textTransform: 'uppercase', lineHeight: 26.8 }} numberOfLines={1}>
           {r.name}

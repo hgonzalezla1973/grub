@@ -6,18 +6,23 @@ import { RestaurantCard } from '../components/RestaurantCard';
 import { MapPlaceholder } from '../components/MapPlaceholder';
 import { EmptyState } from '../components/EmptyState';
 import { SkeletonGrid } from '../components/Skeleton';
+import { DataSourceBanner } from '../components/DataSourceBanner';
 import { COLLECTIONS } from '../data/restaurants';
 import { useApp } from '../state/AppState';
 import { FilterSheet } from '../components/FilterSheet';
 
 export function ExploreScreen() {
   const app = useApp();
-  const [loading, setLoading] = useState(true);
+  const [minTimerDone, setMinTimerDone] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 550);
+    const t = setTimeout(() => setMinTimerDone(true), 550);
     return () => clearTimeout(t);
   }, []);
+
+  // A brief minimum skeleton flash for the (instant) sample-data case, plus the real
+  // network wait when an actual Places search is in flight.
+  const loading = !minTimerDone || app.restaurantsStatus === 'loading';
 
   const resetSearchAndFilters = () => {
     app.clearFilters();
@@ -68,6 +73,8 @@ export function ExploreScreen() {
           )}
         </Pressable>
       </View>
+
+      <DataSourceBanner status={app.restaurantsStatus} usingSampleData={app.usingSampleData} />
 
       <TextInput
         value={app.search}

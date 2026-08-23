@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { colors, fonts } from '../theme/tokens';
 import { priceLabel, Restaurant } from '../data/restaurants';
-import { PhotoPlaceholder } from './PhotoPlaceholder';
+import { RestaurantPhoto } from './RestaurantPhoto';
 import { useApp } from '../state/AppState';
 
 export function PeekCard({ restaurant }: { restaurant: Restaurant }) {
@@ -28,7 +28,7 @@ export function PeekCard({ restaurant }: { restaurant: Restaurant }) {
         shadowRadius: 0,
       }}
     >
-      <PhotoPlaceholder width={46} height={46} radius={12} onColor />
+      <RestaurantPhoto restaurant={restaurant} width={46} height={46} radius={12} onColor />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={{ fontFamily: fonts.display800, fontSize: 22, fontWeight: '800', textTransform: 'uppercase', lineHeight: 23.6 }} numberOfLines={1}>
           {restaurant.name}
