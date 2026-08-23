@@ -1,15 +1,29 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { colors, fonts } from '../theme/tokens';
 import { Chip, SegmentedControl } from '../components/Chip';
 import { RestaurantCard } from '../components/RestaurantCard';
 import { MapPlaceholder } from '../components/MapPlaceholder';
+import { EmptyState } from '../components/EmptyState';
+import { SkeletonGrid } from '../components/Skeleton';
 import { COLLECTIONS } from '../data/restaurants';
 import { useApp } from '../state/AppState';
 import { FilterSheet } from '../components/FilterSheet';
 
 export function ExploreScreen() {
   const app = useApp();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 550);
+    return () => clearTimeout(t);
+  }, []);
+
+  const resetSearchAndFilters = () => {
+    app.clearFilters();
+    app.setSearch('');
+    app.setCollection('all');
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.cream, paddingHorizontal: 18, paddingTop: 20, paddingBottom: 8 }}>
@@ -99,16 +113,28 @@ export function ExploreScreen() {
         )}
       </View>
 
-      {app.resultsView === 'list' ? (
-        <FlatList
-          data={app.filteredRestaurants}
-          keyExtractor={(r) => r.id}
-          numColumns={2}
-          columnWrapperStyle={{ gap: 12 }}
-          contentContainerStyle={{ gap: 12, paddingBottom: 12 }}
-          renderItem={({ item }) => <RestaurantCard restaurant={item} style={{ flex: 1 }} />}
-          showsVerticalScrollIndicator={false}
-        />
+      {loading ? (
+        <SkeletonGrid />
+      ) : app.resultsView === 'list' ? (
+        app.filteredRestaurants.length === 0 ? (
+          <EmptyState
+            icon="🔍"
+            title="No spots match"
+            detail="Try a different search term, or clear your filters to see everything nearby."
+            actionLabel="Reset search & filters"
+            onAction={resetSearchAndFilters}
+          />
+        ) : (
+          <FlatList
+            data={app.filteredRestaurants}
+            keyExtractor={(r) => r.id}
+            numColumns={2}
+            columnWrapperStyle={{ gap: 12 }}
+            contentContainerStyle={{ gap: 12, paddingBottom: 12 }}
+            renderItem={({ item }) => <RestaurantCard restaurant={item} style={{ flex: 1 }} />}
+            showsVerticalScrollIndicator={false}
+          />
+        )
       ) : (
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', gap: 6, marginBottom: 10 }}>
@@ -116,7 +142,17 @@ export function ExploreScreen() {
               <Chip key={key} label={label} active={app.collection === key} onPress={() => app.setCollection(key as any)} />
             ))}
           </View>
-          <MapPlaceholder restaurants={app.filteredRestaurants} />
+          {app.filteredRestaurants.length === 0 ? (
+            <EmptyState
+              icon="🗺️"
+              title="Nothing on the map"
+              detail="No spots match this collection and filter combo. Try a different one."
+              actionLabel="Reset search & filters"
+              onAction={resetSearchAndFilters}
+            />
+          ) : (
+            <MapPlaceholder restaurants={app.filteredRestaurants} />
+          )}
         </View>
       )}
 

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import * as Location from 'expo-location';
 import { colors, fonts } from '../theme/tokens';
 import { Pill } from '../components/Pill';
 import { DIET_LABEL, DietCategory } from '../data/restaurants';
@@ -51,8 +52,26 @@ export function OnboardingScreen() {
   );
 }
 
+type LocationStatus = 'idle' | 'requesting' | 'denied';
+
 function StepOne() {
   const app = useApp();
+  const [status, setStatus] = useState<LocationStatus>('idle');
+
+  const handleUseLocation = async () => {
+    setStatus('requesting');
+    try {
+      const { status: permission } = await Location.requestForegroundPermissionsAsync();
+      if (permission === 'granted') {
+        app.onboardNext();
+      } else {
+        setStatus('denied');
+      }
+    } catch {
+      setStatus('denied');
+    }
+  };
+
   return (
     <>
       <View style={{ flex: 1, justifyContent: 'center' }}>
@@ -83,8 +102,32 @@ function StepOne() {
           </Text>
         </View>
       </View>
+
+      {status === 'denied' && (
+        <View
+          style={{
+            backgroundColor: 'rgba(0,0,0,0.08)',
+            borderWidth: 2,
+            borderColor: colors.black,
+            borderRadius: 14,
+            padding: 12,
+            marginBottom: 10,
+          }}
+        >
+          <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13, fontWeight: '700' }}>Location access is off</Text>
+          <Text style={{ fontFamily: fonts.body, fontSize: 12.5, opacity: 0.8, marginTop: 2, lineHeight: 17 }}>
+            Turn it on in Settings any time, or just enter a city below to keep going.
+          </Text>
+        </View>
+      )}
+
       <View style={{ gap: 10 }}>
-        <Pill label="Use my location" onPress={app.onboardNext} labelColor={colors.green} />
+        <Pill
+          label={status === 'requesting' ? 'Checking…' : 'Use my location'}
+          onPress={handleUseLocation}
+          labelColor={colors.green}
+          disabled={status === 'requesting'}
+        />
         <Pill label="Enter a city instead" onPress={app.onboardNext} variant="outline" fontSize={19} />
       </View>
     </>

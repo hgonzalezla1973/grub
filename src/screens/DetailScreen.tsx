@@ -1,17 +1,34 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { colors, fonts } from '../theme/tokens';
 import { PhotoPlaceholder } from '../components/PhotoPlaceholder';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { Badge } from '../components/Badge';
 import { colorForRestaurant } from '../components/RestaurantCard';
+import { SkeletonDetail } from '../components/Skeleton';
 import { DIET_LABEL, isGem, priceLabel } from '../data/restaurants';
 import { useApp } from '../state/AppState';
 
 export function DetailScreen() {
   const app = useApp();
   const r = app.selectedRestaurant;
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const t = setTimeout(() => setLoading(false), 450);
+    return () => clearTimeout(t);
+  }, [r?.id]);
+
   if (!r) return null;
+
+  if (loading) {
+    return (
+      <ScrollView style={{ flex: 1, backgroundColor: colors.cream }} showsVerticalScrollIndicator={false}>
+        <SkeletonDetail />
+      </ScrollView>
+    );
+  }
 
   const favorite = app.favorites.includes(r.id);
   const gem = isGem(r);
