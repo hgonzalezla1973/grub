@@ -103,6 +103,17 @@ export function ExploreScreen() {
         </button>
       </div>
 
+      <SegmentedControl
+        options={[
+          { label: 'All', value: 'all' },
+          { label: 'Vegan', value: 'vegan' },
+          { label: 'Vegetarian', value: 'vegetarian' },
+        ]}
+        value={app.quickDiet}
+        onChange={app.setQuickDiet}
+        style={{ alignSelf: 'flex-start', marginBottom: 12 }}
+      />
+
       <DataSourceBanner status={app.restaurantsStatus} usingSampleData={app.usingSampleData} />
 
       <input

@@ -17,11 +17,27 @@ const YELP_API_KEY = process.env.YELP_API_KEY;
 const app = express();
 app.use(cors());
 
+const YELP_PAGE_SIZE = 50;
+const YELP_MAX_RESULTS = 200; // safety cap: at most 4 upstream calls per search
+
+function buildYelpSearchUrl(lat, lng, offset) {
+  const url = new URL('https://api.yelp.com/v3/businesses/search');
+  url.searchParams.set('latitude', String(lat));
+  url.searchParams.set('longitude', String(lng));
+  url.searchParams.set('categories', 'vegan,vegetarian');
+  url.searchParams.set('radius', '16000'); // meters, ~10 mi, Yelp's max is 40000
+  url.searchParams.set('limit', String(YELP_PAGE_SIZE));
+  url.searchParams.set('offset', String(offset));
+  url.searchParams.set('sort_by', 'best_match');
+  return url;
+}
+
 /**
  * Yelp Fusion's API deliberately does not support CORS (to keep API keys out of
  * client-side bundles), so browsers can never call it directly. This route is the
  * only thing standing between the client and Yelp: it holds the key server-side
- * and forwards a trimmed, relevant slice of the response.
+ * and pages through Yelp's own results so the client gets everything Yelp knows
+ * about nearby (up to a safety cap), not just the first 50.
  */
 app.get('/api/yelp/search', async (req, res) => {
   if (!YELP_API_KEY) {
@@ -33,23 +49,29 @@ app.get('/api/yelp/search', async (req, res) => {
     return res.status(400).json({ error: 'lat and lng query params are required.' });
   }
 
-  const url = new URL('https://api.yelp.com/v3/businesses/search');
-  url.searchParams.set('latitude', String(lat));
-  url.searchParams.set('longitude', String(lng));
-  url.searchParams.set('categories', 'vegan,vegetarian');
-  url.searchParams.set('radius', '16000'); // meters, ~10 mi, Yelp's max is 40000
-  url.searchParams.set('limit', '50');
-  url.searchParams.set('sort_by', 'best_match');
-
   try {
-    const yelpRes = await fetch(url, {
-      headers: { Authorization: `Bearer ${YELP_API_KEY}` },
-    });
-    const data = await yelpRes.json();
-    if (!yelpRes.ok) {
-      return res.status(yelpRes.status).json({ error: data?.error?.description || 'Yelp API error' });
+    const businesses = [];
+    let total = Infinity;
+
+    for (let offset = 0; offset < YELP_MAX_RESULTS && offset < total; offset += YELP_PAGE_SIZE) {
+      const yelpRes = await fetch(buildYelpSearchUrl(lat, lng, offset), {
+        headers: { Authorization: `Bearer ${YELP_API_KEY}` },
+      });
+      const data = await yelpRes.json();
+
+      if (!yelpRes.ok) {
+        // If we already have results from earlier pages, return those rather than
+        // failing the whole request over a later page erroring out.
+        if (businesses.length > 0) break;
+        return res.status(yelpRes.status).json({ error: data?.error?.description || 'Yelp API error' });
+      }
+
+      businesses.push(...(data.businesses ?? []));
+      total = typeof data.total === 'number' ? data.total : businesses.length;
+      if (!data.businesses || data.businesses.length < YELP_PAGE_SIZE) break; // last page
     }
-    res.json(data);
+
+    res.json({ businesses, total });
   } catch (e) {
     console.error('[yelp proxy] request failed', e);
     res.status(502).json({ error: 'Failed to reach Yelp.' });

@@ -18,7 +18,11 @@ const SEARCH_FIELD_MASK = [
   'places.photos',
   'places.currentOpeningHours',
   'places.internationalPhoneNumber',
+  'nextPageToken',
 ].join(',');
+
+const RESULTS_PAGE_SIZE = 20; // Google's max per call
+const MAX_RESULTS = 60; // safety cap: at most 3 upstream calls per search
 
 interface GooglePlace {
   id: string;
@@ -107,27 +111,37 @@ function mapPlace(p: GooglePlace, origin: Coords): Restaurant {
 export async function searchVeganVegetarianNearby(origin: Coords): Promise<Restaurant[]> {
   if (!API_KEY) throw new PlacesApiError('No Google Places API key configured');
 
-  const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': API_KEY,
-      'X-Goog-FieldMask': SEARCH_FIELD_MASK,
-    },
-    body: JSON.stringify({
-      textQuery: 'vegan or vegetarian restaurants',
-      locationBias: {
-        circle: { center: { latitude: origin.lat, longitude: origin.lng }, radius: 8000 },
+  const places: GooglePlace[] = [];
+  let pageToken: string | undefined;
+
+  do {
+    const res = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': API_KEY,
+        'X-Goog-FieldMask': SEARCH_FIELD_MASK,
       },
-      maxResultCount: 20,
-    }),
-  });
+      body: JSON.stringify({
+        textQuery: 'vegan or vegetarian restaurants',
+        locationBias: {
+          circle: { center: { latitude: origin.lat, longitude: origin.lng }, radius: 8000 },
+        },
+        maxResultCount: RESULTS_PAGE_SIZE,
+        ...(pageToken ? { pageToken } : {}),
+      }),
+    });
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new PlacesApiError(`Places API ${res.status}: ${body.slice(0, 200)}`);
-  }
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      if (places.length > 0) break; // keep what we already have rather than failing outright
+      throw new PlacesApiError(`Places API ${res.status}: ${body.slice(0, 200)}`);
+    }
 
-  const data = (await res.json()) as { places?: GooglePlace[] };
-  return (data.places ?? []).map((p) => mapPlace(p, origin));
+    const data = (await res.json()) as { places?: GooglePlace[]; nextPageToken?: string };
+    places.push(...(data.places ?? []));
+    pageToken = data.nextPageToken;
+  } while (pageToken && places.length < MAX_RESULTS);
+
+  return places.map((p) => mapPlace(p, origin));
 }

@@ -18,6 +18,11 @@ export type Sort = 'distance' | 'rating';
 export type ResultsView = 'list' | 'map';
 export type Collection = 'all' | 'popular' | 'gems';
 export type DistanceKey = 'any' | 'near' | 'mid' | 'far';
+/** A simpler All/Vegan/Vegetarian view over the same `diet` array the filter sheet's
+ *  finer-grained chips write to. "vegan" here means anything vegan-friendly (both the
+ *  100%-vegan and has-vegan-options tags); "custom" is a filter-sheet combo (e.g. vegan
+ *  + vegetarian together) that doesn't collapse cleanly into one of the three presets. */
+export type QuickDiet = 'all' | 'vegan' | 'vegetarian' | 'custom';
 
 interface AppStateShape {
   screen: Screen;
@@ -79,6 +84,8 @@ interface AppContextValue extends AppStateShape {
   closeFilters: () => void;
   clearFilters: () => void;
   toggleDiet: (key: DietCategory) => void;
+  quickDiet: QuickDiet;
+  setQuickDiet: (v: QuickDiet) => void;
   setMood: (key: string) => void;
   setDistance: (key: DistanceKey) => void;
   toggleFavorite: (id: string) => void;
@@ -135,6 +142,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       diet: s.diet.includes(key) ? s.diet.filter((k) => k !== key) : [...s.diet, key],
     }));
   }, []);
+
+  const setQuickDiet = useCallback((v: QuickDiet) => {
+    if (v === 'all') patch({ diet: [] });
+    else if (v === 'vegan') patch({ diet: ['vegan', 'veganOptions'] });
+    else if (v === 'vegetarian') patch({ diet: ['vegetarian'] });
+  }, [patch]);
 
   const setMood = useCallback((key: string) => patch({ mood: key }), [patch]);
   const setDistance = useCallback((key: DistanceKey) => patch({ distance: key }), [patch]);
@@ -235,6 +248,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [liveRestaurants, state.peekId]
   );
 
+  const quickDiet: QuickDiet = useMemo(() => {
+    const d = state.diet;
+    if (d.length === 0) return 'all';
+    if (d.length === 1 && d[0] === 'vegetarian') return 'vegetarian';
+    if (d.every((k) => k === 'vegan' || k === 'veganOptions')) return 'vegan';
+    return 'custom';
+  }, [state.diet]);
+
   const activeFilterCount =
     state.diet.length + (state.mood !== 'any' ? 1 : 0) + (state.distance !== 'any' ? 1 : 0);
   const hasActiveFilters = activeFilterCount > 0;
@@ -268,6 +289,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     closeFilters,
     clearFilters,
     toggleDiet,
+    quickDiet,
+    setQuickDiet,
     setMood,
     setDistance,
     toggleFavorite,
