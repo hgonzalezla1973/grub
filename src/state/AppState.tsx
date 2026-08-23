@@ -6,6 +6,7 @@ import {
   Restaurant,
   RESTAURANTS,
 } from '../data/restaurants';
+import { Coords, destinationPoint, haversineMiles, hashBearing } from '../utils/geo';
 
 export type Screen = 'onboarding' | 'home' | 'results' | 'detail' | 'saved' | 'profile';
 export type Mode = 'near' | 'trip';
@@ -30,6 +31,7 @@ interface AppStateShape {
   selectedId: string | null;
   peekId: string | null;
   favorites: string[];
+  userLocation: Coords | null;
 }
 
 const initialState: AppStateShape = {
@@ -48,6 +50,7 @@ const initialState: AppStateShape = {
   selectedId: null,
   peekId: null,
   favorites: [],
+  userLocation: null,
 };
 
 interface AppContextValue extends AppStateShape {
@@ -73,6 +76,8 @@ interface AppContextValue extends AppStateShape {
   toggleFavorite: (id: string) => void;
   openDetail: (id: string) => void;
   backToResults: () => void;
+  setUserLocation: (loc: Coords | null) => void;
+  hasLiveLocation: boolean;
   filteredRestaurants: Restaurant[];
   savedList: Restaurant[];
   selectedRestaurant: Restaurant | null;
@@ -133,10 +138,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const openDetail = useCallback((id: string) => patch({ screen: 'detail', selectedId: id }), [patch]);
   const backToResults = useCallback(() => patch({ screen: 'results' }), [patch]);
+  const setUserLocation = useCallback((loc: Coords | null) => patch({ userLocation: loc }), [patch]);
+
+  /**
+   * Restaurant addresses are fictional sample data, so there's nothing real to geocode.
+   * Once we have the user's real coordinates, each restaurant is anchored at its
+   * designed sample distance along a stable per-id bearing, so distance sorting/
+   * filtering and map pin placement are driven by real geo math relative to wherever
+   * the user actually is, instead of a hardcoded number baked into the dataset.
+   */
+  const liveRestaurants = useMemo(() => {
+    const loc = state.userLocation;
+    if (!loc) return RESTAURANTS;
+    return RESTAURANTS.map((r) => {
+      const bearing = hashBearing(r.id);
+      const coords = destinationPoint(loc, r.distance, bearing);
+      const liveDistance = Math.round(haversineMiles(loc, coords) * 10) / 10;
+      return { ...r, distance: liveDistance, lat: coords.lat, lng: coords.lng };
+    });
+  }, [state.userLocation]);
 
   const filteredRestaurants = useMemo(() => {
     const q = state.search.trim().toLowerCase();
-    const list = RESTAURANTS.filter((r) => {
+    const list = liveRestaurants.filter((r) => {
       if (state.diet.length && !state.diet.includes(r.dietCategory)) return false;
       if (state.mood !== 'any' && r.cuisine !== state.mood) return false;
       if (state.distance !== 'any' && distanceBucket(r.distance) !== state.distance) return false;
@@ -149,21 +173,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
     list.sort((a, b) => (state.sort === 'rating' ? b.rating - a.rating : a.distance - b.distance));
     return list;
-  }, [state.search, state.diet, state.mood, state.distance, state.resultsView, state.collection, state.sort]);
+  }, [liveRestaurants, state.search, state.diet, state.mood, state.distance, state.resultsView, state.collection, state.sort]);
 
   const savedList = useMemo(
-    () => RESTAURANTS.filter((r) => state.favorites.includes(r.id)),
-    [state.favorites]
+    () => liveRestaurants.filter((r) => state.favorites.includes(r.id)),
+    [liveRestaurants, state.favorites]
   );
 
   const selectedRestaurant = useMemo(
-    () => (state.selectedId ? RESTAURANTS.find((r) => r.id === state.selectedId) ?? null : null),
-    [state.selectedId]
+    () => (state.selectedId ? liveRestaurants.find((r) => r.id === state.selectedId) ?? null : null),
+    [liveRestaurants, state.selectedId]
   );
 
   const peekRestaurant = useMemo(
-    () => (state.peekId ? RESTAURANTS.find((r) => r.id === state.peekId) ?? null : null),
-    [state.peekId]
+    () => (state.peekId ? liveRestaurants.find((r) => r.id === state.peekId) ?? null : null),
+    [liveRestaurants, state.peekId]
   );
 
   const activeFilterCount =
@@ -204,6 +228,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     toggleFavorite,
     openDetail,
     backToResults,
+    setUserLocation,
+    hasLiveLocation: state.userLocation !== null,
     filteredRestaurants,
     savedList,
     selectedRestaurant,

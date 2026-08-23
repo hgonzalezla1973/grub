@@ -62,11 +62,13 @@ function StepOne() {
     setStatus('requesting');
     try {
       const { status: permission } = await Location.requestForegroundPermissionsAsync();
-      if (permission === 'granted') {
-        app.onboardNext();
-      } else {
+      if (permission !== 'granted') {
         setStatus('denied');
+        return;
       }
+      const position = await Location.getCurrentPositionAsync({});
+      app.setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+      app.onboardNext();
     } catch {
       setStatus('denied');
     }

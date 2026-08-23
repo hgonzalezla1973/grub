@@ -29,6 +29,9 @@ export interface Restaurant {
   menu: MenuItem[];
   note: string;
   reviews: Review[];
+  /** Populated once the user's real location is known; distance is then computed live from these. */
+  lat?: number;
+  lng?: number;
 }
 
 export const RESTAURANTS: Restaurant[] = [
