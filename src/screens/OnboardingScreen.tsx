@@ -54,6 +54,23 @@ export function OnboardingScreen() {
 
 type LocationStatus = 'idle' | 'requesting' | 'denied' | 'blocked' | 'unavailable';
 
+/** A hung native permission/GPS call must never leave the button stuck on "Checking…" forever. */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`timed out after ${ms}ms`)), ms);
+    promise.then(
+      (v) => {
+        clearTimeout(timer);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(timer);
+        reject(e);
+      }
+    );
+  });
+}
+
 function StepOne() {
   const app = useApp();
   const [status, setStatus] = useState<LocationStatus>('idle');
@@ -61,7 +78,10 @@ function StepOne() {
   const handleUseLocation = async () => {
     setStatus('requesting');
     try {
-      const { status: permission, canAskAgain } = await Location.requestForegroundPermissionsAsync();
+      const { status: permission, canAskAgain } = await withTimeout(
+        Location.requestForegroundPermissionsAsync(),
+        15000
+      );
       if (permission !== 'granted') {
         // iOS/Android only show the system prompt once per app. If a prior denial (in this
         // app or, on Expo Go, ANY project run through it) already recorded "don't ask again",
@@ -70,7 +90,10 @@ function StepOne() {
         setStatus(canAskAgain ? 'denied' : 'blocked');
         return;
       }
-      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const position = await withTimeout(
+        Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }),
+        15000
+      );
       app.setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
       app.onboardNext();
     } catch (e) {
