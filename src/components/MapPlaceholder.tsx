@@ -5,13 +5,27 @@ import { useApp } from '../state/AppState';
 import { hashBearing } from '../utils/geo';
 import { PeekCard } from './PeekCard';
 
+// This is a placeholder canvas, not a real map — a fixed handful of pixels standing in
+// for what a real SDK would lay out over actual geography. With the small sample dataset
+// it was designed against, that was fine; with real search results (dozens of nearby
+// restaurants, often clustered close together in dense areas) it isn't, so we both cap
+// how many pins it tries to hold at once and spread them out more aggressively.
+const MAX_PINS = 24;
+
 /** When real geo data is available, radiate pins outward from a "you are here" center
  *  by real bearing/relative-distance; otherwise fall back to a fixed scatter layout. */
 function pinPosition(r: Restaurant, i: number, maxDistance: number, hasGeo: boolean) {
   if (hasGeo && r.lat !== undefined) {
     const bearing = hashBearing(r.id);
-    const radius = Math.min(0.42, (r.distance / maxDistance) * 0.42);
-    const rad = (bearing * Math.PI) / 180;
+    // sqrt (not linear) so restaurants that are all close together don't collapse into a
+    // single dot at the center — it pushes near ones outward proportionally more than far
+    // ones. A little per-pin jitter (from an independent hash) keeps near-identical
+    // bearing/distance pairs from landing exactly on top of each other.
+    const jitter = hashBearing(`${r.id}-jitter`);
+    const radiusJitter = 0.85 + (jitter % 30) / 100;
+    const bearingJitter = (jitter % 40) - 20;
+    const radius = Math.min(0.46, Math.sqrt(r.distance / maxDistance) * 0.46 * radiusJitter);
+    const rad = ((bearing + bearingJitter) * Math.PI) / 180;
     return {
       left: `${50 + Math.sin(rad) * radius * 100}%`,
       top: `${50 - Math.cos(rad) * radius * 100}%`,
@@ -23,9 +37,10 @@ function pinPosition(r: Restaurant, i: number, maxDistance: number, hasGeo: bool
   };
 }
 
-export function MapPlaceholder({ restaurants }: { restaurants: Restaurant[] }) {
+export function MapPlaceholder({ restaurants: allRestaurants }: { restaurants: Restaurant[] }) {
   const app = useApp();
   const hasGeo = app.hasLiveLocation;
+  const restaurants = allRestaurants.slice(0, MAX_PINS);
   const maxDistance = Math.max(1, ...restaurants.map((r) => r.distance));
   const gridId = `map-grid-${useId()}`;
 
@@ -106,6 +121,30 @@ export function MapPlaceholder({ restaurants }: { restaurants: Restaurant[] }) {
           </button>
         );
       })}
+
+      {allRestaurants.length > MAX_PINS && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 10,
+            left: 10,
+            background: colors.white,
+            borderWidth: 2,
+            borderStyle: 'solid',
+            borderColor: colors.black,
+            borderRadius: 100,
+            paddingTop: 4,
+            paddingBottom: 4,
+            paddingLeft: 10,
+            paddingRight: 10,
+            fontFamily: fonts.body,
+            fontSize: 11,
+            fontWeight: 700,
+          }}
+        >
+          Closest {MAX_PINS} of {allRestaurants.length} — see List for all
+        </div>
+      )}
 
       {app.peekRestaurant && <PeekCard restaurant={app.peekRestaurant} />}
     </div>
