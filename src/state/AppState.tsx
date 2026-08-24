@@ -2,8 +2,10 @@ import { createContext, useCallback, useContext, useMemo, useState, type ReactNo
 import {
   DISTANCE_FILTERS,
   distanceBucket,
+  placeKind,
   RESTAURANTS,
   type DietCategory,
+  type PlaceKind,
   type Restaurant,
 } from '../data/restaurants';
 import { destinationPoint, haversineMiles, hashBearing, type Coords } from '../utils/geo';
@@ -22,6 +24,7 @@ export type Sort = 'distance' | 'rating';
 export type ResultsView = 'list' | 'map';
 export type Collection = 'all' | 'popular' | 'gems';
 export type DistanceKey = 'any' | 'near' | 'mid' | 'far';
+export type KindFilter = 'all' | PlaceKind;
 /** A simpler All/Vegan/Vegetarian view over the same `diet` array the filter sheet's
  *  finer-grained chips write to. "vegan" here means anything vegan-friendly (both the
  *  100%-vegan and has-vegan-options tags); "custom" is a filter-sheet combo (e.g. vegan
@@ -34,6 +37,7 @@ interface AppStateShape {
   mode: Mode;
   destination: string;
   diet: DietCategory[];
+  kindFilter: KindFilter;
   mood: string;
   distance: DistanceKey;
   search: string;
@@ -55,6 +59,7 @@ const initialState: AppStateShape = {
   mode: 'near',
   destination: '',
   diet: [],
+  kindFilter: 'all',
   mood: 'any',
   distance: 'any',
   search: '',
@@ -90,6 +95,7 @@ interface AppContextValue extends AppStateShape {
   toggleDiet: (key: DietCategory) => void;
   quickDiet: QuickDiet;
   setQuickDiet: (v: QuickDiet) => void;
+  setKindFilter: (v: KindFilter) => void;
   setMood: (key: string) => void;
   setDistance: (key: DistanceKey) => void;
   toggleFavorite: (id: string) => void;
@@ -139,7 +145,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setPeek = useCallback((id: string | null) => patch({ peekId: id }), [patch]);
   const openFilters = useCallback(() => patch({ filtersOpen: true }), [patch]);
   const closeFilters = useCallback(() => patch({ filtersOpen: false }), [patch]);
-  const clearFilters = useCallback(() => patch({ diet: [], mood: 'any', distance: 'any' }), [patch]);
+  const clearFilters = useCallback(
+    () => patch({ diet: [], kindFilter: 'all', mood: 'any', distance: 'any' }),
+    [patch]
+  );
 
   const toggleDiet = useCallback((key: DietCategory) => {
     setState((s) => ({
@@ -153,6 +162,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     else if (v === 'vegan') patch({ diet: ['vegan', 'veganOptions'] });
     else if (v === 'vegetarian') patch({ diet: ['vegetarian'] });
   }, [patch]);
+
+  const setKindFilter = useCallback((v: KindFilter) => patch({ kindFilter: v }), [patch]);
 
   const setMood = useCallback((key: string) => patch({ mood: key }), [patch]);
   const setDistance = useCallback((key: DistanceKey) => patch({ distance: key }), [patch]);
@@ -241,6 +252,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const filteredRestaurants = useMemo(() => {
     const q = state.search.trim().toLowerCase();
     const list = liveRestaurants.filter((r) => {
+      if (state.kindFilter !== 'all' && placeKind(r) !== state.kindFilter) return false;
       if (state.diet.length && !state.diet.includes(r.dietCategory)) return false;
       if (state.mood !== 'any' && r.cuisine !== state.mood) return false;
       if (state.distance !== 'any' && distanceBucket(r.distance) !== state.distance) return false;
@@ -253,7 +265,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
     list.sort((a, b) => (state.sort === 'rating' ? b.rating - a.rating : a.distance - b.distance));
     return list;
-  }, [liveRestaurants, state.search, state.diet, state.mood, state.distance, state.resultsView, state.collection, state.sort]);
+  }, [
+    liveRestaurants,
+    state.search,
+    state.diet,
+    state.kindFilter,
+    state.mood,
+    state.distance,
+    state.resultsView,
+    state.collection,
+    state.sort,
+  ]);
 
   const savedList = useMemo(
     () => liveRestaurants.filter((r) => state.favorites.includes(r.id)),
@@ -279,7 +301,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [state.diet]);
 
   const activeFilterCount =
-    state.diet.length + (state.mood !== 'any' ? 1 : 0) + (state.distance !== 'any' ? 1 : 0);
+    state.diet.length +
+    (state.kindFilter !== 'all' ? 1 : 0) +
+    (state.mood !== 'any' ? 1 : 0) +
+    (state.distance !== 'any' ? 1 : 0);
   const hasActiveFilters = activeFilterCount > 0;
 
   const filterSummary = useMemo(() => {
@@ -313,6 +338,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleDiet,
     quickDiet,
     setQuickDiet,
+    setKindFilter,
     setMood,
     setDistance,
     toggleFavorite,

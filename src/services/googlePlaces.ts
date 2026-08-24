@@ -1,5 +1,7 @@
 import { haversineMiles, type Coords } from '../utils/geo';
-import type { DietCategory, Restaurant } from '../data/restaurants';
+import type { DietCategory, PlaceKind, Restaurant } from '../data/restaurants';
+
+const SEARCH_QUERY_SUFFIX = ', or health food stores';
 
 // Read at build time by Vite (VITE_ vars are inlined into the JS bundle).
 // See README-GOOGLE-PLACES-SETUP.md for how to get a key.
@@ -79,10 +81,17 @@ function inferDietCategory(types: string[]): DietCategory {
   return 'veganOptions';
 }
 
+/** The search itself is scoped to include health_food_store, so any result carrying
+ *  that type is a store, not a restaurant. */
+function inferKind(types: string[]): PlaceKind {
+  return types.includes('health_food_store') ? 'store' : 'restaurant';
+}
+
 function mapPlace(p: GooglePlace, origin: Coords): Restaurant {
   const lat = p.location?.latitude ?? origin.lat;
   const lng = p.location?.longitude ?? origin.lng;
   const types = p.types ?? [];
+  const kind = inferKind(types);
 
   return {
     id: p.id,
@@ -91,6 +100,7 @@ function mapPlace(p: GooglePlace, origin: Coords): Restaurant {
     distance: Math.round(haversineMiles(origin, { lat, lng }) * 10) / 10,
     address: p.formattedAddress ?? 'Address unavailable',
     isFastFood: types.includes('fast_food_restaurant') || types.includes('meal_takeaway'),
+    kind,
     dietCategory: inferDietCategory(types),
     rating: p.rating ?? 0,
     reviewCount: p.userRatingCount ?? 0,
@@ -99,7 +109,10 @@ function mapPlace(p: GooglePlace, origin: Coords): Restaurant {
     phone: p.internationalPhoneNumber ?? '',
     hours: p.currentOpeningHours?.weekdayDescriptions?.[0] ?? 'Hours unavailable',
     menu: [],
-    note: "This listing comes from Google Places — dish-level vegan/vegetarian details aren't available yet.",
+    note:
+      kind === 'store'
+        ? "This listing comes from Google Places — we don't have details on what they stock yet."
+        : "This listing comes from Google Places — dish-level vegan/vegetarian details aren't available yet.",
     reviews: [],
     lat,
     lng,
@@ -145,7 +158,7 @@ async function fetchAllPlaces(body: Record<string, unknown>): Promise<GooglePlac
 
 export async function searchVeganVegetarianNearby(origin: Coords): Promise<Restaurant[]> {
   const places = await fetchAllPlaces({
-    textQuery: 'vegan or vegetarian restaurants',
+    textQuery: `vegan or vegetarian restaurants${SEARCH_QUERY_SUFFIX}`,
     locationBias: {
       circle: { center: { latitude: origin.lat, longitude: origin.lng }, radius: 8000 },
     },
@@ -160,7 +173,7 @@ export async function searchVeganVegetarianNearby(origin: Coords): Promise<Resta
  * (a "distance from the middle of the pack" proxy, not a true from-you distance).
  */
 export async function searchVeganVegetarianInCity(city: string): Promise<Restaurant[]> {
-  const places = await fetchAllPlaces({ textQuery: `vegan or vegetarian restaurants in ${city}` });
+  const places = await fetchAllPlaces({ textQuery: `vegan or vegetarian restaurants${SEARCH_QUERY_SUFFIX} in ${city}` });
 
   const withCoords = places.filter((p) => p.location);
   const centroid: Coords = withCoords.length

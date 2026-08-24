@@ -31,7 +31,9 @@ function buildYelpSearchUrl({ lat, lng, location, offset }) {
     url.searchParams.set('longitude', String(lng));
     url.searchParams.set('radius', '16000'); // meters, ~10 mi, Yelp's max is 40000
   }
-  url.searchParams.set('categories', 'vegan,vegetarian');
+  // healthmarkets = Yelp's category for health food stores/supplement shops, alongside
+  // the vegan/vegetarian restaurant categories.
+  url.searchParams.set('categories', 'vegan,vegetarian,healthmarkets');
   url.searchParams.set('limit', String(YELP_PAGE_SIZE));
   url.searchParams.set('offset', String(offset));
   url.searchParams.set('sort_by', 'best_match');

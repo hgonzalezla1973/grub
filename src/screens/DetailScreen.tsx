@@ -6,7 +6,7 @@ import { FavoriteButton } from '../components/FavoriteButton';
 import { Badge } from '../components/Badge';
 import { colorForRestaurant } from '../components/RestaurantCard';
 import { SkeletonDetail } from '../components/Skeleton';
-import { DIET_LABEL, isGem, priceLabel } from '../data/restaurants';
+import { DIET_LABEL, isGem, placeKind, priceLabel } from '../data/restaurants';
 import { useApp } from '../state/AppState';
 
 export function DetailScreen() {
@@ -32,6 +32,7 @@ export function DetailScreen() {
 
   const favorite = app.favorites.includes(r.id);
   const gem = isGem(r);
+  const isStore = placeKind(r) === 'store';
   const query = encodeURIComponent(`${r.name} ${r.address}`);
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
   const wazeUrl = `https://waze.com/ul?q=${query}&navigate=yes`;
@@ -111,10 +112,12 @@ export function DetailScreen() {
           }}
         >
           <div style={{ fontFamily: fonts.display, fontSize: 22, fontWeight: 800, textTransform: 'uppercase', marginBottom: 6 }}>
-            Eaten here?
+            {isStore ? 'Shopped here?' : 'Eaten here?'}
           </div>
           <div style={{ fontFamily: fonts.body, fontSize: 14, lineHeight: 1.4, marginBottom: 12 }}>
-            You're the 3rd person to open this page today. Be the one who says what's actually vegan.
+            {isStore
+              ? "You're the 3rd person to open this page today. Be the one who says what's actually worth grabbing here."
+              : "You're the 3rd person to open this page today. Be the one who says what's actually vegan."}
           </div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
             <button
@@ -162,7 +165,7 @@ export function DetailScreen() {
           </div>
         </div>
 
-        <SectionHeading title="Vegan & veg options" />
+        <SectionHeading title={isStore ? 'What they carry' : 'Vegan & veg options'} />
         {r.menu.length === 0 ? (
           <div
             style={{
@@ -176,8 +179,9 @@ export function DetailScreen() {
             }}
           >
             <div style={{ fontFamily: fonts.body, fontSize: 13.5, opacity: 0.75, lineHeight: 1.4 }}>
-              Dish-level vegan/vegetarian details aren't available for this listing yet — be the first to add a review
-              naming what's actually plant-based here.
+              {isStore
+                ? "We don't have details on their vegan/vegetarian selection yet — be the first to add a review naming what's worth picking up here."
+                : "Dish-level vegan/vegetarian details aren't available for this listing yet — be the first to add a review naming what's actually plant-based here."}
             </div>
           </div>
         ) : (
@@ -236,7 +240,9 @@ export function DetailScreen() {
             }}
           >
             <div style={{ fontFamily: fonts.body, fontSize: 14, lineHeight: 1.4, opacity: 0.75 }}>
-              No reviews yet on Grub for this spot — be the first to say what's actually vegan here.
+              {isStore
+                ? "No reviews yet on Grub for this spot — be the first to say what's worth shopping for here."
+                : "No reviews yet on Grub for this spot — be the first to say what's actually vegan here."}
             </div>
           </div>
         ) : (

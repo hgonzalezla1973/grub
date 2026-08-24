@@ -1,4 +1,4 @@
-import type { DietCategory, Restaurant } from '../data/restaurants';
+import type { DietCategory, PlaceKind, Restaurant } from '../data/restaurants';
 
 /**
  * Yelp Fusion's API deliberately doesn't support CORS, so it can never be called
@@ -43,8 +43,15 @@ function cuisineFrom(categories: { alias: string; title: string }[]): string {
   return (nonDiet ?? categories[0])?.title ?? 'Restaurant';
 }
 
+/** "healthmarkets" is the Yelp category alias for health food/supplement stores — the
+ *  search itself is scoped to it, so any result carrying it is a store, not a restaurant. */
+function inferKind(categories: { alias: string }[]): PlaceKind {
+  return categories.some((c) => c.alias === 'healthmarkets') ? 'store' : 'restaurant';
+}
+
 function mapBusiness(b: YelpBusiness): Restaurant {
   const categories = b.categories ?? [];
+  const kind = inferKind(categories);
 
   return {
     id: `yelp-${b.id}`,
@@ -53,6 +60,7 @@ function mapBusiness(b: YelpBusiness): Restaurant {
     distance: Math.round(((b.distance ?? 0) / 1609.344) * 10) / 10,
     address: b.location?.display_address?.join(', ') ?? 'Address unavailable',
     isFastFood: categories.some((c) => c.alias === 'hotdogs' || c.alias === 'fastfood'),
+    kind,
     dietCategory: inferDietCategory(categories),
     rating: b.rating ?? 0,
     reviewCount: b.review_count ?? 0,
@@ -61,7 +69,10 @@ function mapBusiness(b: YelpBusiness): Restaurant {
     phone: b.phone ?? '',
     hours: 'Hours unavailable',
     menu: [],
-    note: "This listing comes from Yelp — dish-level vegan/vegetarian details aren't available yet.",
+    note:
+      kind === 'store'
+        ? "This listing comes from Yelp — we don't have details on what they stock yet."
+        : "This listing comes from Yelp — dish-level vegan/vegetarian details aren't available yet.",
     reviews: [],
     lat: b.coordinates?.latitude,
     lng: b.coordinates?.longitude,

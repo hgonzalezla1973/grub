@@ -1,6 +1,6 @@
 import { type CSSProperties } from 'react';
 import { colors, cardColors, fonts } from '../theme/tokens';
-import { DIET_LABEL, priceLabel, type Restaurant } from '../data/restaurants';
+import { DIET_LABEL, placeKind, priceLabel, type Restaurant } from '../data/restaurants';
 import { hashBearing } from '../utils/geo';
 import { RestaurantPhoto } from './RestaurantPhoto';
 import { FavoriteButton } from './FavoriteButton';
@@ -91,6 +91,7 @@ export function RestaurantCard({ restaurant: r, style }: Props) {
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           <Badge label={`★ ${r.rating}`} />
           <Badge label={`${r.distance} mi`} />
+          {placeKind(r) === 'store' && <Badge label="🛒 Store" bg={colors.yellow} />}
           <Badge label={DIET_LABEL[r.dietCategory]} filled />
         </div>
       </div>

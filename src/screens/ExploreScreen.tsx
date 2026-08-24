@@ -103,16 +103,26 @@ export function ExploreScreen() {
         </button>
       </div>
 
-      <SegmentedControl
-        options={[
-          { label: 'All', value: 'all' },
-          { label: 'Vegan', value: 'vegan' },
-          { label: 'Vegetarian', value: 'vegetarian' },
-        ]}
-        value={app.quickDiet}
-        onChange={app.setQuickDiet}
-        style={{ alignSelf: 'flex-start', marginBottom: 12 }}
-      />
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+        <SegmentedControl
+          options={[
+            { label: 'All', value: 'all' },
+            { label: 'Vegan', value: 'vegan' },
+            { label: 'Vegetarian', value: 'vegetarian' },
+          ]}
+          value={app.quickDiet}
+          onChange={app.setQuickDiet}
+        />
+        <SegmentedControl
+          options={[
+            { label: 'All Kinds', value: 'all' },
+            { label: 'Restaurants', value: 'restaurant' },
+            { label: 'Stores', value: 'store' },
+          ]}
+          value={app.kindFilter}
+          onChange={app.setKindFilter}
+        />
+      </div>
 
       <DataSourceBanner status={app.restaurantsStatus} usingSampleData={app.usingSampleData} />
 

@@ -1,5 +1,8 @@
 export type DietCategory = 'vegan' | 'veganOptions' | 'vegetarian';
 export type MenuTag = 'vegan' | 'vegetarian';
+/** Health food stores (groceries/supplement shops) alongside restaurants — same shape,
+ *  since a store still has hours/address/rating/reviews, but no dish-level menu. */
+export type PlaceKind = 'restaurant' | 'store';
 
 export interface MenuItem {
   name: string;
@@ -20,6 +23,9 @@ export interface Restaurant {
   address: string;
   isFastFood: boolean;
   dietCategory: DietCategory;
+  /** Defaults to 'restaurant' when absent — all the fixed sample data and every result
+   *  before this field existed is a restaurant. */
+  kind?: PlaceKind;
   rating: number;
   reviewCount: number;
   photoCount: number;
@@ -186,3 +192,10 @@ export const isGem = (r: Restaurant) => r.rating >= 4.7 && r.reviewCount < 200;
 export const isPopular = (r: Restaurant) => r.reviewCount >= 150;
 
 export const priceLabel = (p: number) => '$'.repeat(p);
+
+export const placeKind = (r: Restaurant): PlaceKind => r.kind ?? 'restaurant';
+
+export const KIND_FILTERS: [PlaceKind, string][] = [
+  ['restaurant', 'Restaurants'],
+  ['store', 'Health Stores'],
+];
