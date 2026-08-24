@@ -160,7 +160,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setQuickDiet = useCallback((v: QuickDiet) => {
     if (v === 'all') patch({ diet: [] });
     else if (v === 'vegan') patch({ diet: ['vegan', 'veganOptions'] });
-    else if (v === 'vegetarian') patch({ diet: ['vegetarian'] });
+    // "veganOptions" is the catch-all bucket for anything that matched the vegan/vegetarian
+    // search but wasn't specifically typed as either by Google/Yelp — in practice most real
+    // results land here, so leaving it out (as this used to) made "Vegetarian" match almost
+    // nothing even in areas with plenty of vegetarian-friendly spots.
+    else if (v === 'vegetarian') patch({ diet: ['vegetarian', 'veganOptions'] });
   }, [patch]);
 
   const setKindFilter = useCallback((v: KindFilter) => patch({ kindFilter: v }), [patch]);
@@ -296,6 +300,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const d = state.diet;
     if (d.length === 0) return 'all';
     if (d.length === 1 && d[0] === 'vegetarian') return 'vegetarian';
+    if (d.includes('vegetarian') && d.every((k) => k === 'vegetarian' || k === 'veganOptions')) return 'vegetarian';
     if (d.every((k) => k === 'vegan' || k === 'veganOptions')) return 'vegan';
     return 'custom';
   }, [state.diet]);
