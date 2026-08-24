@@ -2,14 +2,20 @@ import { useState, type ReactNode } from 'react';
 import { colors, fonts } from '../theme/tokens';
 import { Pill } from '../components/Pill';
 import { DIET_LABEL, type DietCategory } from '../data/restaurants';
-import { useApp } from '../state/AppState';
+import { useApp, type DistanceKey } from '../state/AppState';
 
-const STEP_BG: Record<1 | 2 | 3, string> = { 1: colors.green, 2: colors.coral, 3: colors.blue };
+const STEP_BG: Record<1 | 2 | 3 | 4, string> = { 1: colors.green, 2: colors.purple, 3: colors.coral, 4: colors.blue };
 
 const DIET_CARDS: { key: DietCategory; label: string; detail: string }[] = [
   { key: 'vegan', label: '100% Vegan', detail: 'Only kitchens with no animal products at all.' },
   { key: 'veganOptions', label: 'Vegan options', detail: 'Any restaurant with dishes marked vegan.' },
   { key: 'vegetarian', label: 'Vegetarian options', detail: 'Meat-free dishes, dairy and egg are fine.' },
+];
+
+const DISTANCE_CARDS: { key: DistanceKey; label: string; detail: string }[] = [
+  { key: 'near', label: 'Less than 3 mi', detail: 'Walkable — right in the neighborhood.' },
+  { key: 'mid', label: '3 to 10 mi', detail: 'A short drive across town.' },
+  { key: 'far', label: 'More than 10 mi', detail: "Worth the trip if it's good." },
 ];
 
 export function OnboardingScreen() {
@@ -31,7 +37,7 @@ export function OnboardingScreen() {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 6 }}>
-          {[1, 2, 3].map((n) => (
+          {[1, 2, 3, 4].map((n) => (
             <div
               key={n}
               style={{
@@ -46,7 +52,7 @@ export function OnboardingScreen() {
             />
           ))}
         </div>
-        {app.onboardStep < 3 && (
+        {app.onboardStep < 4 && (
           <button
             type="button"
             onClick={app.goHome}
@@ -67,8 +73,9 @@ export function OnboardingScreen() {
       </div>
 
       {app.onboardStep === 1 && <StepOne />}
-      {app.onboardStep === 2 && <StepTwo />}
-      {app.onboardStep === 3 && <StepThree />}
+      {app.onboardStep === 2 && <StepDistance />}
+      {app.onboardStep === 3 && <StepDiet />}
+      {app.onboardStep === 4 && <StepTeaser />}
     </div>
   );
 }
@@ -289,7 +296,90 @@ function MessageBox({ title, children }: { title: string; children: ReactNode })
   );
 }
 
-function StepTwo() {
+function StepDistance() {
+  const app = useApp();
+
+  return (
+    <>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div
+          style={{
+            fontFamily: fonts.display,
+            fontSize: 52,
+            fontWeight: 900,
+            lineHeight: 1,
+            textTransform: 'uppercase',
+            marginBottom: 8,
+          }}
+        >
+          How far do
+          <br />
+          you want to go?
+        </div>
+        <div style={{ fontFamily: fonts.body, fontSize: 15, opacity: 0.78, lineHeight: 1.4, marginBottom: 20 }}>
+          We'll only show spots within this range. Change it any time from the filters.
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {DISTANCE_CARDS.map((d) => {
+            const on = app.distance === d.key;
+            return (
+              <button
+                type="button"
+                key={d.key}
+                onClick={() => app.setDistance(on ? 'any' : d.key)}
+                style={{
+                  textAlign: 'left',
+                  background: on ? colors.black : colors.white,
+                  borderWidth: 2,
+                  borderStyle: 'solid',
+                  borderColor: colors.black,
+                  borderRadius: 20,
+                  padding: 14,
+                  paddingLeft: 16,
+                  paddingRight: 16,
+                  boxShadow: `4px 4px 0 ${colors.black}`,
+                  cursor: 'pointer',
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: fonts.display,
+                    fontSize: 26,
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    lineHeight: 1.1,
+                    color: on ? colors.white : colors.black,
+                  }}
+                >
+                  {d.label}
+                </div>
+                <div
+                  style={{
+                    fontFamily: fonts.body,
+                    fontSize: 13,
+                    opacity: 0.75,
+                    marginTop: 4,
+                    lineHeight: 1.35,
+                    color: on ? colors.white : colors.black,
+                  }}
+                >
+                  {d.detail}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <Pill
+        label={app.distance === 'any' ? 'Any distance is fine' : 'Continue'}
+        onClick={app.onboardNext}
+        labelColor={colors.purple}
+      />
+    </>
+  );
+}
+
+function StepDiet() {
   const app = useApp();
   const hasAny = app.diet.length > 0;
   return (
@@ -368,7 +458,7 @@ function StepTwo() {
   );
 }
 
-function StepThree() {
+function StepTeaser() {
   const app = useApp();
   const teaser = app.filteredRestaurants.slice(0, 3);
   const line =

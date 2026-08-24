@@ -30,7 +30,7 @@ export type QuickDiet = 'all' | 'vegan' | 'vegetarian' | 'custom';
 
 interface AppStateShape {
   screen: Screen;
-  onboardStep: 1 | 2 | 3;
+  onboardStep: 1 | 2 | 3 | 4;
   mode: Mode;
   destination: string;
   diet: DietCategory[];
@@ -126,7 +126,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const onboardNext = useCallback(() => {
     setState((s) =>
-      s.onboardStep >= 3 ? { ...s, screen: 'results' } : { ...s, onboardStep: (s.onboardStep + 1) as 1 | 2 | 3 }
+      s.onboardStep >= 4 ? { ...s, screen: 'results' } : { ...s, onboardStep: (s.onboardStep + 1) as 1 | 2 | 3 | 4 }
     );
   }, []);
 
