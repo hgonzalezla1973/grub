@@ -1,5 +1,6 @@
 import { colors, fonts } from '../theme/tokens';
 import { priceLabel, type Restaurant } from '../data/restaurants';
+import { formatDistance } from '../utils/geo';
 import { RestaurantPhoto } from './RestaurantPhoto';
 import { useApp } from '../state/AppState';
 
@@ -41,7 +42,7 @@ export function PeekCard({ restaurant }: { restaurant: Restaurant }) {
           {restaurant.name}
         </div>
         <div style={{ fontFamily: fonts.body, fontSize: 12.5, fontWeight: 600, opacity: 0.8, marginTop: 2 }}>
-          ★ {restaurant.rating} · {priceLabel(restaurant.price)} · {restaurant.distance} mi
+          ★ {restaurant.rating} · {priceLabel(restaurant.price)} · {formatDistance(restaurant.distance)}
         </div>
       </div>
       <button

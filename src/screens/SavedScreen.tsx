@@ -3,6 +3,7 @@ import { RestaurantPhoto } from '../components/RestaurantPhoto';
 import { FavoriteButton } from '../components/FavoriteButton';
 import { colorForRestaurant } from '../components/RestaurantCard';
 import { priceLabel, type Restaurant } from '../data/restaurants';
+import { formatDistance } from '../utils/geo';
 import { useApp } from '../state/AppState';
 
 export function SavedScreen() {
@@ -138,7 +139,7 @@ function SavedRow({ restaurant: r }: { restaurant: Restaurant }) {
           {r.name}
         </div>
         <div style={{ fontFamily: fonts.body, fontSize: 13, fontWeight: 600, opacity: 0.78, marginTop: 2 }}>
-          ★ {r.rating} · {priceLabel(r.price)} · {r.distance} mi
+          ★ {r.rating} · {priceLabel(r.price)} · {formatDistance(r.distance)}
         </div>
       </div>
       <FavoriteButton

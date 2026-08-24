@@ -1,3 +1,5 @@
+import { formatDistanceThreshold } from '../utils/geo';
+
 export type DietCategory = 'vegan' | 'veganOptions' | 'vegetarian';
 export type MenuTag = 'vegan' | 'vegetarian';
 /** Health food stores (groceries/supplement shops) alongside restaurants — same shape,
@@ -168,9 +170,9 @@ export const MOOD_FILTERS: [string, string][] = [
 ];
 
 export const DISTANCE_FILTERS: [string, string][] = [
-  ['near', 'Less than 3 mi'],
-  ['mid', '3 to 10 mi'],
-  ['far', 'More than 10 mi'],
+  ['near', `Less than ${formatDistanceThreshold(3)}`],
+  ['mid', `${formatDistanceThreshold(3)} to ${formatDistanceThreshold(10)}`],
+  ['far', `More than ${formatDistanceThreshold(10)}`],
 ];
 
 export const COLLECTIONS: [string, string][] = [

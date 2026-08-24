@@ -2,14 +2,15 @@ import { useState, type ReactNode } from 'react';
 import { colors, fonts } from '../theme/tokens';
 import { Pill } from '../components/Pill';
 import { DIET_LABEL } from '../data/restaurants';
+import { formatDistance, formatDistanceThreshold } from '../utils/geo';
 import { useApp, type DistanceKey } from '../state/AppState';
 
 const STEP_BG: Record<1 | 2 | 3, string> = { 1: colors.green, 2: colors.purple, 3: colors.blue };
 
 const DISTANCE_CARDS: { key: DistanceKey; label: string; detail: string }[] = [
-  { key: 'near', label: 'Less than 3 mi', detail: 'Walkable — right in the neighborhood.' },
-  { key: 'mid', label: '3 to 10 mi', detail: 'A short drive across town.' },
-  { key: 'far', label: 'More than 10 mi', detail: "Worth the trip if it's good." },
+  { key: 'near', label: `Less than ${formatDistanceThreshold(3)}`, detail: 'Walkable — right in the neighborhood.' },
+  { key: 'mid', label: `${formatDistanceThreshold(3)} to ${formatDistanceThreshold(10)}`, detail: 'A short drive across town.' },
+  { key: 'far', label: `More than ${formatDistanceThreshold(10)}`, detail: "Worth the trip if it's good." },
 ];
 
 export function OnboardingScreen() {
@@ -444,7 +445,7 @@ function StepTeaser() {
                   {r.name}
                 </div>
                 <div style={{ fontFamily: fonts.body, fontSize: 12, fontWeight: 600, opacity: 0.75, marginTop: 2 }}>
-                  ★ {r.rating} · {r.distance} mi · {DIET_LABEL[r.dietCategory]}
+                  ★ {r.rating} · {formatDistance(r.distance)} · {DIET_LABEL[r.dietCategory]}
                 </div>
               </div>
             </div>

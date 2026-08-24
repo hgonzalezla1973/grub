@@ -7,6 +7,7 @@ import { Badge } from '../components/Badge';
 import { colorForRestaurant } from '../components/RestaurantCard';
 import { SkeletonDetail } from '../components/Skeleton';
 import { DIET_LABEL, isGem, placeKind, priceLabel } from '../data/restaurants';
+import { formatDistance } from '../utils/geo';
 import { useApp } from '../state/AppState';
 
 export function DetailScreen() {
@@ -89,7 +90,7 @@ export function DetailScreen() {
         </div>
 
         <div style={{ fontFamily: fonts.body, fontSize: 14, opacity: 0.75, lineHeight: 1.4 }}>
-          {r.distance} mi away · {r.address}
+          {formatDistance(r.distance)} away · {r.address}
         </div>
         <div style={{ fontFamily: fonts.body, fontSize: 14, fontWeight: 700, marginTop: 2, marginBottom: 16 }}>{r.hours}</div>
 
