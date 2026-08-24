@@ -30,21 +30,25 @@ export function SkeletonRestaurantCard() {
   return (
     <div
       style={{
-        flex: 1,
         background: colors.white,
         borderWidth: 2,
         borderStyle: 'solid',
         borderColor: 'rgba(0,0,0,0.15)',
         borderRadius: 20,
         padding: 10,
+        display: 'flex',
+        gap: 12,
+        alignItems: 'center',
       }}
     >
-      <SkeletonBlock height={88} radius={14} style={{ marginBottom: 10 }} />
-      <SkeletonBlock height={18} width="80%" radius={6} style={{ marginBottom: 8 }} />
-      <SkeletonBlock height={12} width="55%" radius={6} style={{ marginBottom: 10 }} />
-      <div style={{ display: 'flex', gap: 6 }}>
-        <SkeletonBlock height={20} width={44} radius={100} />
-        <SkeletonBlock height={20} width={44} radius={100} />
+      <SkeletonBlock width={84} height={84} radius={14} style={{ flexShrink: 0 }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <SkeletonBlock height={18} width="70%" radius={6} style={{ marginBottom: 8 }} />
+        <SkeletonBlock height={12} width="45%" radius={6} style={{ marginBottom: 10 }} />
+        <div style={{ display: 'flex', gap: 6 }}>
+          <SkeletonBlock height={20} width={44} radius={100} />
+          <SkeletonBlock height={20} width={44} radius={100} />
+        </div>
       </div>
     </div>
   );
@@ -52,15 +56,10 @@ export function SkeletonRestaurantCard() {
 
 export function SkeletonGrid({ count = 6 }: { count?: number }) {
   const rows = [];
-  for (let i = 0; i < count; i += 2) {
-    rows.push(
-      <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-        <SkeletonRestaurantCard />
-        {i + 1 < count ? <SkeletonRestaurantCard /> : <div style={{ flex: 1 }} />}
-      </div>
-    );
+  for (let i = 0; i < count; i++) {
+    rows.push(<SkeletonRestaurantCard key={i} />);
   }
-  return <div>{rows}</div>;
+  return <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{rows}</div>;
 }
 
 export function SkeletonDetail() {

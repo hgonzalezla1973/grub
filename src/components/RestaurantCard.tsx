@@ -44,52 +44,55 @@ export function RestaurantCard({ restaurant: r, style }: Props) {
         boxShadow: `4px 4px 0 ${colors.black}`,
         cursor: 'pointer',
         display: 'flex',
-        flexDirection: 'column',
+        gap: 12,
+        alignItems: 'center',
         ...style,
       }}
     >
-      <div style={{ position: 'relative', marginBottom: 8 }}>
-        <RestaurantPhoto restaurant={r} height={88} radius={14} onColor />
+      <div style={{ position: 'relative', flexShrink: 0 }}>
+        <RestaurantPhoto restaurant={r} width={84} height={84} radius={14} onColor />
         <FavoriteButton
           active={favorite}
           onClick={() => app.toggleFavorite(r.id)}
-          size={26}
-          style={{ position: 'absolute', top: 6, right: 6 }}
+          size={24}
+          style={{ position: 'absolute', top: -6, right: -6 }}
         />
       </div>
-      <div
-        style={{
-          fontFamily: fonts.display,
-          fontSize: 23,
-          fontWeight: 800,
-          textTransform: 'uppercase',
-          lineHeight: 1.08,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {r.name}
-      </div>
-      <div
-        style={{
-          fontFamily: fonts.body,
-          fontSize: 12.5,
-          fontWeight: 600,
-          opacity: 0.75,
-          marginTop: 2,
-          marginBottom: 8,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {r.cuisine} · {priceLabel(r.price)}
-      </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        <Badge label={`★ ${r.rating}`} />
-        <Badge label={`${r.distance} mi`} />
-        <Badge label={DIET_LABEL[r.dietCategory]} filled />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            fontFamily: fonts.display,
+            fontSize: 21,
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            lineHeight: 1.08,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {r.name}
+        </div>
+        <div
+          style={{
+            fontFamily: fonts.body,
+            fontSize: 12.5,
+            fontWeight: 600,
+            opacity: 0.75,
+            marginTop: 2,
+            marginBottom: 8,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {r.cuisine} · {priceLabel(r.price)}
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+          <Badge label={`★ ${r.rating}`} />
+          <Badge label={`${r.distance} mi`} />
+          <Badge label={DIET_LABEL[r.dietCategory]} filled />
+        </div>
       </div>
     </div>
   );

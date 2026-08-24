@@ -192,10 +192,9 @@ export function ExploreScreen() {
             <div
               style={{
                 overflowY: 'auto',
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
+                display: 'flex',
+                flexDirection: 'column',
                 gap: 12,
-                alignContent: 'start',
                 paddingBottom: 12,
               }}
             >
