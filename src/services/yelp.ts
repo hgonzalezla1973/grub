@@ -43,10 +43,15 @@ function cuisineFrom(categories: { alias: string; title: string }[]): string {
   return (nonDiet ?? categories[0])?.title ?? 'Restaurant';
 }
 
-/** "healthmarkets" is the Yelp category alias for health food/supplement stores — the
- *  search itself is scoped to it, so any result carrying it is a store, not a restaurant. */
+/** The search is scoped to these categories, so any result carrying one of them is a
+ *  store, not a restaurant. "healthmarkets" covers small health food/vitamin shops;
+ *  "grocery" and "organic_stores" catch bigger natural grocery chains (Sprouts, Whole
+ *  Foods, Trader Joe's) that Yelp doesn't tag as "healthmarkets" even though they're
+ *  exactly what someone looking for health food stores means. */
+const STORE_CATEGORIES = new Set(['healthmarkets', 'grocery', 'organic_stores']);
+
 function inferKind(categories: { alias: string }[]): PlaceKind {
-  return categories.some((c) => c.alias === 'healthmarkets') ? 'store' : 'restaurant';
+  return categories.some((c) => STORE_CATEGORIES.has(c.alias)) ? 'store' : 'restaurant';
 }
 
 function mapBusiness(b: YelpBusiness): Restaurant {

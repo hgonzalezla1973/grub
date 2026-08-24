@@ -31,9 +31,10 @@ function buildYelpSearchUrl({ lat, lng, location, offset }) {
     url.searchParams.set('longitude', String(lng));
     url.searchParams.set('radius', '16000'); // meters, ~10 mi, Yelp's max is 40000
   }
-  // healthmarkets = Yelp's category for health food stores/supplement shops, alongside
-  // the vegan/vegetarian restaurant categories.
-  url.searchParams.set('categories', 'vegan,vegetarian,healthmarkets');
+  // healthmarkets = small health food/vitamin shops. Sprouts, Whole Foods, Trader Joe's,
+  // etc. are tagged "grocery" and/or "organic_stores" on Yelp instead — without those,
+  // Yelp's own category filter drops them before they ever reach the app.
+  url.searchParams.set('categories', 'vegan,vegetarian,healthmarkets,grocery,organic_stores');
   url.searchParams.set('limit', String(YELP_PAGE_SIZE));
   url.searchParams.set('offset', String(offset));
   url.searchParams.set('sort_by', 'best_match');

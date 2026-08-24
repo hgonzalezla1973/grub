@@ -1,7 +1,7 @@
 import { haversineMiles, type Coords } from '../utils/geo';
 import type { DietCategory, PlaceKind, Restaurant } from '../data/restaurants';
 
-const SEARCH_QUERY_SUFFIX = ', or health food stores';
+const SEARCH_QUERY_SUFFIX = ', health food stores, or natural grocery stores';
 
 // Read at build time by Vite (VITE_ vars are inlined into the JS bundle).
 // See README-GOOGLE-PLACES-SETUP.md for how to get a key.
@@ -81,10 +81,15 @@ function inferDietCategory(types: string[]): DietCategory {
   return 'veganOptions';
 }
 
-/** The search itself is scoped to include health_food_store, so any result carrying
- *  that type is a store, not a restaurant. */
+/** The search itself is scoped to include these types, so any result carrying one of
+ *  them is a store, not a restaurant. "health_food_store" covers small health food/
+ *  vitamin shops; "grocery_store" and "supermarket" catch bigger natural grocery chains
+ *  (Sprouts, Whole Foods, Trader Joe's) that Google doesn't type as "health_food_store"
+ *  even though they're exactly what someone looking for health food stores means. */
+const STORE_TYPES = new Set(['health_food_store', 'grocery_store', 'supermarket']);
+
 function inferKind(types: string[]): PlaceKind {
-  return types.includes('health_food_store') ? 'store' : 'restaurant';
+  return types.some((t) => STORE_TYPES.has(t)) ? 'store' : 'restaurant';
 }
 
 function mapPlace(p: GooglePlace, origin: Coords): Restaurant {
