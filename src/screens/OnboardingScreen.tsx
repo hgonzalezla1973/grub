@@ -1,16 +1,10 @@
 import { useState, type ReactNode } from 'react';
 import { colors, fonts } from '../theme/tokens';
 import { Pill } from '../components/Pill';
-import { DIET_LABEL, type DietCategory } from '../data/restaurants';
+import { DIET_LABEL } from '../data/restaurants';
 import { useApp, type DistanceKey } from '../state/AppState';
 
-const STEP_BG: Record<1 | 2 | 3 | 4, string> = { 1: colors.green, 2: colors.purple, 3: colors.coral, 4: colors.blue };
-
-const DIET_CARDS: { key: DietCategory; label: string; detail: string }[] = [
-  { key: 'vegan', label: '100% Vegan', detail: 'Only kitchens with no animal products at all.' },
-  { key: 'veganOptions', label: 'Vegan options', detail: 'Any restaurant with dishes marked vegan.' },
-  { key: 'vegetarian', label: 'Vegetarian options', detail: 'Meat-free dishes, dairy and egg are fine.' },
-];
+const STEP_BG: Record<1 | 2 | 3, string> = { 1: colors.green, 2: colors.purple, 3: colors.blue };
 
 const DISTANCE_CARDS: { key: DistanceKey; label: string; detail: string }[] = [
   { key: 'near', label: 'Less than 3 mi', detail: 'Walkable — right in the neighborhood.' },
@@ -37,7 +31,7 @@ export function OnboardingScreen() {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 6 }}>
-          {[1, 2, 3, 4].map((n) => (
+          {[1, 2, 3].map((n) => (
             <div
               key={n}
               style={{
@@ -52,7 +46,7 @@ export function OnboardingScreen() {
             />
           ))}
         </div>
-        {app.onboardStep < 4 && (
+        {app.onboardStep < 3 && (
           <button
             type="button"
             onClick={app.goHome}
@@ -74,8 +68,7 @@ export function OnboardingScreen() {
 
       {app.onboardStep === 1 && <StepOne />}
       {app.onboardStep === 2 && <StepDistance />}
-      {app.onboardStep === 3 && <StepDiet />}
-      {app.onboardStep === 4 && <StepTeaser />}
+      {app.onboardStep === 3 && <StepTeaser />}
     </div>
   );
 }
@@ -375,85 +368,6 @@ function StepDistance() {
         onClick={app.onboardNext}
         labelColor={colors.purple}
       />
-    </>
-  );
-}
-
-function StepDiet() {
-  const app = useApp();
-  const hasAny = app.diet.length > 0;
-  return (
-    <>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div
-          style={{
-            fontFamily: fonts.display,
-            fontSize: 52,
-            fontWeight: 900,
-            lineHeight: 1,
-            textTransform: 'uppercase',
-            marginBottom: 8,
-          }}
-        >
-          How do
-          <br />
-          you eat?
-        </div>
-        <div style={{ fontFamily: fonts.body, fontSize: 15, opacity: 0.78, lineHeight: 1.4, marginBottom: 20 }}>
-          Pick anything that applies. This becomes your default filter — change it any time.
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {DIET_CARDS.map((d) => {
-            const on = app.diet.includes(d.key);
-            return (
-              <button
-                type="button"
-                key={d.key}
-                onClick={() => app.toggleDiet(d.key)}
-                style={{
-                  textAlign: 'left',
-                  background: on ? colors.black : colors.white,
-                  borderWidth: 2,
-                  borderStyle: 'solid',
-                  borderColor: colors.black,
-                  borderRadius: 20,
-                  padding: 14,
-                  paddingLeft: 16,
-                  paddingRight: 16,
-                  boxShadow: `4px 4px 0 ${colors.black}`,
-                  cursor: 'pointer',
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: fonts.display,
-                    fontSize: 26,
-                    fontWeight: 800,
-                    textTransform: 'uppercase',
-                    lineHeight: 1.1,
-                    color: on ? colors.white : colors.black,
-                  }}
-                >
-                  {d.label}
-                </div>
-                <div
-                  style={{
-                    fontFamily: fonts.body,
-                    fontSize: 13,
-                    opacity: 0.75,
-                    marginTop: 4,
-                    lineHeight: 1.35,
-                    color: on ? colors.white : colors.black,
-                  }}
-                >
-                  {d.detail}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-      <Pill label={hasAny ? 'Looks right' : 'Show me everything'} onClick={app.onboardNext} labelColor={colors.coral} />
     </>
   );
 }
